@@ -3,7 +3,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { AppService } from './app.service';
 import {FileInterceptor} from "@nestjs/platform-express";
-import {combineLatest, debounceTime, from, map, Observable, Subject, switchMap, take} from "rxjs";
+import {combineLatest, debounceTime, from, map, Observable, reduce, Subject, switchMap, take} from "rxjs";
 import { Express } from 'express';
 // This is a hack to make Multer available in the Express namespace
 import { Multer } from 'multer';
@@ -29,7 +29,7 @@ export class AppController {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(@UploadedFile() file: Express.Multer.File): Observable<Array<NoteEventTime>> {
-    console.log(file);
+       console.log(file);
 
     const audioData = from(decoders.mp3(file.buffer));
 
@@ -37,29 +37,40 @@ export class AppController {
     const model = tf.loadGraphModel(`file://${__dirname}/model.json`);
     const basicPitch = new BasicPitch(model as any);
 
-    const completedEvaluation = new Subject<{
+    const evaluations = new Subject<{
       frames: Array<number[]>,
       onsets: Array<number[]>,
       contours: Array<number[]>,
     }>();
-    const percent = new Subject<number>();
+
+    const evaluated = evaluations.pipe(
+      reduce((acc, {frames, onsets, contours}) => ({
+        frames: acc.frames.concat(frames),
+        onsets: acc.onsets.concat(onsets),
+        contours: acc.contours.concat(contours),
+      }), {
+        frames: [],
+        onsets: [],
+        contours: [],
+      })
+    );
 
     const evaluate = audioData.pipe(
+      map(audioBuffer => audioBuffer.getChannelData(0)),
       switchMap(audioBuffer=> from(basicPitch.evaluateModel(
         audioBuffer,
           (frames, onsets, contours) => {
-          console.log('frames', frames);
-          completedEvaluation.next({frames, onsets, contours});
+             console.log('frames', frames);
+          evaluations.next({frames, onsets, contours});
           },
           (percent: number) => {
           console.log(percent);
+          if (percent === 1) evaluations.complete();
           },
         ))
       ));
 
-    return combineLatest([evaluate, completedEvaluation.pipe(
-      debounceTime(5000)
-    )]).pipe(
+    return combineLatest([evaluate, evaluated]).pipe(
       take(1),
       map(([_, {frames, onsets, contours}]) => {
         const notes = noteFramesToTime(
@@ -75,9 +86,7 @@ export class AppController {
             melodiaTrick?: boolean,
             energyTolerance?: number
              */
-            outputToNotesPoly(frames, onsets,
-              .3, .2, 11, true, 3000, 0, true,
-              ),
+            outputToNotesPoly(frames, onsets, 0.25, 0.25, 5),
           ),
         );
         console.log(notes);
