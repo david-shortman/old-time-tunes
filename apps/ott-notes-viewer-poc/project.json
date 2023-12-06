@@ -1,0 +1,92 @@
+{
+  "name": "ott-notes-viewer-poc",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "old-time-tunes",
+  "sourceRoot": "apps/ott-notes-viewer-poc/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/ott-notes-viewer-poc",
+        "index": "apps/ott-notes-viewer-poc/src/index.html",
+        "browser": "apps/ott-notes-viewer-poc/src/main.ts",
+        "polyfills": ["zone.js"],
+        "tsConfig": "apps/ott-notes-viewer-poc/tsconfig.app.json",
+        "assets": [
+          "apps/ott-notes-viewer-poc/src/favicon.ico",
+          "apps/ott-notes-viewer-poc/src/assets"
+        ],
+        "styles": ["apps/ott-notes-viewer-poc/src/styles.css"],
+        "scripts": []
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "2kb",
+              "maximumError": "4kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "ott-notes-viewer-poc:build:production"
+        },
+        "development": {
+          "buildTarget": "ott-notes-viewer-poc:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "options": {
+        "buildTarget": "ott-notes-viewer-poc:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "apps/ott-notes-viewer-poc/**/*.ts",
+          "apps/ott-notes-viewer-poc/**/*.html"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/ott-notes-viewer-poc/jest.config.ts"
+      }
+    },
+    "serve-static": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "ott-notes-viewer-poc:build",
+        "staticFilePath": "dist/apps/ott-notes-viewer-poc/browser"
+      }
+    }
+  }
+}

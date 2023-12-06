@@ -1,0 +1,41 @@
+{
+  "name": "ot-tunes-audio-2-notes",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/node/audio-2-notes/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/node/audio-2-notes",
+        "tsConfig": "libs/node/audio-2-notes/tsconfig.lib.json",
+        "packageJson": "libs/node/audio-2-notes/package.json",
+        "main": "libs/node/audio-2-notes/src/index.ts",
+        "assets": ["libs/node/audio-2-notes/*.md"]
+      }
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs ot-tunes-audio-2-notes {args.ver} {args.tag}",
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "libs/node/audio-2-notes/**/*.ts",
+          "libs/node/audio-2-notes/package.json"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "libs/node/audio-2-notes/jest.config.ts"
+      }
+    }
+  },
+  "tags": []
+}

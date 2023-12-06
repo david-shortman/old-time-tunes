@@ -1,0 +1,58 @@
+{
+  "name": "ott-notes-api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ott-notes-api/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/ott-notes-api",
+        "outputFileName": "main.mjs",
+        "main": "apps/ott-notes-api/src/main.ts",
+        "tsConfig": "apps/ott-notes-api/tsconfig.app.json",
+        "assets": ["apps/ott-notes-api/src/assets"],
+        "isolatedConfig": true,
+        "webpackConfig": "apps/ott-notes-api/webpack.config.cjs"
+      },
+      "configurations": {
+        "development": {},
+        "production": {}
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "ott-notes-api:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "ott-notes-api:build:development"
+        },
+        "production": {
+          "buildTarget": "ott-notes-api:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ott-notes-api/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/ott-notes-api/jest.config.ts"
+      }
+    }
+  },
+  "tags": []
+}

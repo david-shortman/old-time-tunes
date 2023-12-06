@@ -14,7 +14,10 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@ot-tunes/audio2notes-node": ["libs/node/audio-2-notes/src/index.ts"],
+      "@ot-tunes/notes": ["libs/ts/notes/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
