@@ -4,6 +4,7 @@
 dist
 tmp
 /out-tsc
+apps/ott-app/package.json
 
 # dependencies
 node_modules
