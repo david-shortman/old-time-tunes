@@ -10,7 +10,7 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/ott-app"
+        "outputPath": "apps/ott-app"
       },
       "configurations": {
         "development": {
