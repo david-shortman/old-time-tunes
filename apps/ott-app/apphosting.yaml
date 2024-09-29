@@ -1,8 +1,8 @@
 runConfig:
-  minInstances: 2
-  maxInstances: 100
-  concurrency: 100
-  cpu: 2
+  minInstances: 1
+  maxInstances: 10
+  concurrency: 80
+  cpu: 1
   memoryMiB: 1024
 
 env:
