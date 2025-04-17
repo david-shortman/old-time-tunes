@@ -7,7 +7,7 @@
     "serve": {
       "executor": "@nxlv/python:run-commands",
       "options": {
-        "command": "poetry run uvicorn ott_bp_api.main:app --reload --host 0.0.0.0 --port 8000",
+        "command": "/Users/davidmccoy/.local/bin/poetry run uvicorn ott_bp_api.main:app --reload --host 0.0.0.0 --port 8000",
         "cwd": "apps/ott-bp-api"
       }
     },

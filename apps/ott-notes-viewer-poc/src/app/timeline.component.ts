@@ -6,8 +6,9 @@ interface NoteEventTime {
   pitchMidi: number;
 }
 
-interface StaffLine {
-  notes: NoteEventTime[];
+interface PianoStaffLine {
+  trebleNotes: NoteEventTime[];
+  bassNotes: NoteEventTime[];
   startTime: number;
   endTime: number;
 }
@@ -19,70 +20,150 @@ interface StaffLine {
   template: `
     <div class="card">
       @for (staffLine of staffLines; track staffLine; let i = $index) {
-        <svg
-          [attr.viewBox]="'0 0 400 ' + STAFF_HEIGHT"
-          class="staff-svg"
-          [class.mt-8]="i > 0"
-        >
-          <!-- Staff lines -->
-          @for (line of lineIndices; track line) {
-            <line
-              [attr.x1]="0"
-              [attr.y1]="STAFF_HEIGHT/2 - LINE_SPACING * 2 + line * LINE_SPACING"
-              [attr.x2]="'100%'"
-              [attr.y2]="STAFF_HEIGHT/2 - LINE_SPACING * 2 + line * LINE_SPACING"
-              class="staff-line"
-            />
-          }
-
-          <!-- Treble clef -->
-          <text
-            [attr.x]="10"
-            [attr.y]="STAFF_HEIGHT/2"
-            class="treble-clef"
+        <div [class.mt-12]="i > 0">
+          <!-- Treble Staff -->
+          <svg
+            [attr.viewBox]="'0 0 400 ' + STAFF_HEIGHT"
+            class="staff-svg"
           >
-            𝄞
-          </text>
-
-          <!-- Time indicator -->
-          <text
-            x="40"
-            y="20"
-            class="time-indicator"
-          >
-            {{ formatTime(staffLine.startTime) }}
-          </text>
-
-          <!-- Notes -->
-          @for (note of staffLine.notes; track note) {
-            <g>
-              <!-- Ledger lines -->
-              @for (position of getLedgerLinePositions(note.pitchMidi); track position) {
-                <line
-                  [attr.x1]="getLedgerLineStart(note.startTimeSeconds, staffLine)"
-                  [attr.y1]="position"
-                  [attr.x2]="getLedgerLineEnd(note.startTimeSeconds, staffLine)"
-                  [attr.y2]="position"
-                  class="ledger-line"
-                />
-              }
-
-              <circle
-                [attr.cx]="getTimePosition(note.startTimeSeconds, staffLine)"
-                [attr.cy]="getMidiNotePosition(note.pitchMidi)"
-                [attr.r]="NOTE_RADIUS"
-                class="note"
+            <!-- Staff lines -->
+            @for (line of lineIndices; track line) {
+              <line
+                [attr.x1]="0"
+                [attr.y1]="STAFF_HEIGHT/2 - LINE_SPACING * 2 + line * LINE_SPACING"
+                [attr.x2]="'100%'"
+                [attr.y2]="STAFF_HEIGHT/2 - LINE_SPACING * 2 + line * LINE_SPACING"
+                class="staff-line"
               />
-              <text
-                [attr.x]="getTimePosition(note.startTimeSeconds, staffLine)"
-                [attr.y]="getMidiNotePosition(note.pitchMidi) - 10"
-                class="note-label"
-              >
-                {{ getNoteName(note.pitchMidi) }}
-              </text>
-            </g>
-          }
-        </svg>
+            }
+
+            <!-- Treble clef -->
+            <text
+              [attr.x]="10"
+              [attr.y]="STAFF_HEIGHT/2"
+              class="clef"
+            >
+              𝄞
+            </text>
+
+            <!-- Time indicator -->
+            <text
+              x="40"
+              y="20"
+              class="time-indicator"
+            >
+              {{ formatTime(staffLine.startTime) }}
+            </text>
+
+            <!-- Notes -->
+            @for (note of staffLine.trebleNotes; track note) {
+              <g>
+                <!-- Ledger lines -->
+                @for (position of getLedgerLinePositions(note.pitchMidi, false); track position) {
+                  <line
+                    [attr.x1]="getLedgerLineStart(note.startTimeSeconds, staffLine)"
+                    [attr.y1]="position"
+                    [attr.x2]="getLedgerLineEnd(note.startTimeSeconds, staffLine)"
+                    [attr.y2]="position"
+                    class="ledger-line"
+                  />
+                }
+
+                <!-- Note stem -->
+                @if (shouldDrawStem(note.pitchMidi)) {
+                  <line
+                    [attr.x1]="getTimePosition(note.startTimeSeconds, staffLine)"
+                    [attr.y1]="getMidiNotePosition(note.pitchMidi, false)"
+                    [attr.x2]="getTimePosition(note.startTimeSeconds, staffLine)"
+                    [attr.y2]="getMidiNotePosition(note.pitchMidi, false) - 30"
+                    class="note-stem"
+                  />
+                }
+
+                <circle
+                  [attr.cx]="getTimePosition(note.startTimeSeconds, staffLine)"
+                  [attr.cy]="getMidiNotePosition(note.pitchMidi, false)"
+                  [attr.r]="NOTE_RADIUS"
+                  class="note"
+                />
+                <text
+                  [attr.x]="getTimePosition(note.startTimeSeconds, staffLine)"
+                  [attr.y]="getMidiNotePosition(note.pitchMidi, false) - 10"
+                  class="note-label"
+                >
+                  {{ getNoteName(note.pitchMidi) }}
+                </text>
+              </g>
+            }
+          </svg>
+
+          <!-- Bass Staff -->
+          <svg
+            [attr.viewBox]="'0 0 400 ' + STAFF_HEIGHT"
+            class="staff-svg mt-1"
+          >
+            <!-- Staff lines -->
+            @for (line of lineIndices; track line) {
+              <line
+                [attr.x1]="0"
+                [attr.y1]="STAFF_HEIGHT/2 - LINE_SPACING * 2 + line * LINE_SPACING"
+                [attr.x2]="'100%'"
+                [attr.y2]="STAFF_HEIGHT/2 - LINE_SPACING * 2 + line * LINE_SPACING"
+                class="staff-line"
+              />
+            }
+
+            <!-- Bass clef -->
+            <text
+              [attr.x]="10"
+              [attr.y]="STAFF_HEIGHT/2"
+              class="clef bass-clef"
+            >
+              𝄢
+            </text>
+
+            <!-- Notes -->
+            @for (note of staffLine.bassNotes; track note) {
+              <g>
+                <!-- Ledger lines -->
+                @for (position of getLedgerLinePositions(note.pitchMidi, true); track position) {
+                  <line
+                    [attr.x1]="getLedgerLineStart(note.startTimeSeconds, staffLine)"
+                    [attr.y1]="position"
+                    [attr.x2]="getLedgerLineEnd(note.startTimeSeconds, staffLine)"
+                    [attr.y2]="position"
+                    class="ledger-line"
+                  />
+                }
+
+                <!-- Note stem -->
+                @if (shouldDrawStem(note.pitchMidi)) {
+                  <line
+                    [attr.x1]="getTimePosition(note.startTimeSeconds, staffLine)"
+                    [attr.y1]="getMidiNotePosition(note.pitchMidi, true)"
+                    [attr.x2]="getTimePosition(note.startTimeSeconds, staffLine)"
+                    [attr.y2]="getMidiNotePosition(note.pitchMidi, true) - 30"
+                    class="note-stem"
+                  />
+                }
+
+                <circle
+                  [attr.cx]="getTimePosition(note.startTimeSeconds, staffLine)"
+                  [attr.cy]="getMidiNotePosition(note.pitchMidi, true)"
+                  [attr.r]="NOTE_RADIUS"
+                  class="note"
+                />
+                <text
+                  [attr.x]="getTimePosition(note.startTimeSeconds, staffLine)"
+                  [attr.y]="getMidiNotePosition(note.pitchMidi, true) - 10"
+                  class="note-label"
+                >
+                  {{ getNoteName(note.pitchMidi) }}
+                </text>
+              </g>
+            }
+          </svg>
+        </div>
       }
     </div>
   `,
@@ -96,7 +177,7 @@ interface StaffLine {
 
     .staff-svg {
       width: 100%;
-      height: 10rem;
+      height: 8rem;
       min-height: 160px;
     }
 
@@ -105,13 +186,23 @@ interface StaffLine {
       stroke-width: 1;
     }
 
-    .treble-clef {
+    .clef {
       font-size: 40px;
       font-family: serif;
     }
 
+    .bass-clef {
+      font-size: 36px;
+      transform: translateY(-5px);
+    }
+
     .note {
       fill: black;
+    }
+
+    .note-stem {
+      stroke: black;
+      stroke-width: 1;
     }
 
     .note-label {
@@ -137,10 +228,11 @@ export class TimelineComponent {
   readonly LINE_SPACING = 10;
   readonly NOTE_RADIUS = 6;
   readonly SECONDS_PER_LINE = 5;
+  readonly MIDDLE_C = 60;  // MIDI note number for middle C
   readonly lineIndices = [0, 1, 2, 3, 4];
 
   private _notes: NoteEventTime[] = [];
-  staffLines: StaffLine[] = [];
+  staffLines: PianoStaffLine[] = [];
 
   @Input() set notes(notes: NoteEventTime[]) {
     this._notes = notes;
@@ -150,124 +242,107 @@ export class TimelineComponent {
     return this._notes;
   }
 
-  private createStaffLines(notes: NoteEventTime[]): StaffLine[] {
+  private createStaffLines(notes: NoteEventTime[]): PianoStaffLine[] {
     if (!notes.length) return [];
 
     const sortedNotes = [...notes].sort((a, b) => a.startTimeSeconds - b.startTimeSeconds);
-
-    const lines: StaffLine[] = [];
-    let currentLine: NoteEventTime[] = [];
+    const lines: PianoStaffLine[] = [];
+    let currentNotes: NoteEventTime[] = [];
     let lineStartTime = sortedNotes[0].startTimeSeconds;
 
     for (const note of sortedNotes) {
       if (note.startTimeSeconds - lineStartTime > this.SECONDS_PER_LINE) {
-        lines.push({
-          notes: currentLine,
-          startTime: lineStartTime,
-          endTime: lineStartTime + this.SECONDS_PER_LINE
-        });
-        currentLine = [];
+        lines.push(this.createPianoStaffLine(currentNotes, lineStartTime));
+        currentNotes = [];
         lineStartTime = note.startTimeSeconds;
       }
-      currentLine.push(note);
+      currentNotes.push(note);
     }
 
-    if (currentLine.length) {
-      lines.push({
-        notes: currentLine,
-        startTime: lineStartTime,
-        endTime: lineStartTime + this.SECONDS_PER_LINE
-      });
+    if (currentNotes.length) {
+      lines.push(this.createPianoStaffLine(currentNotes, lineStartTime));
     }
 
     return lines;
   }
 
-  getMidiNotePosition(midiNote: number): number {
-    // E4 (MIDI 64) is our reference note on the bottom line
-    const E4_MIDI = 64;
+  private createPianoStaffLine(notes: NoteEventTime[], startTime: number): PianoStaffLine {
+    // Split notes between treble and bass clef
+    const trebleNotes = notes.filter(note => note.pitchMidi >= this.MIDDLE_C);
+    const bassNotes = notes.filter(note => note.pitchMidi < this.MIDDLE_C);
 
+    // Debug logging
+    console.log('Creating piano staff line:', {
+      startTime,
+      totalNotes: notes.length,
+      trebleNotes: trebleNotes.length,
+      bassNotes: bassNotes.length,
+      sampleTreble: trebleNotes[0]?.pitchMidi,
+      sampleBass: bassNotes[0]?.pitchMidi
+    });
 
-    // Calculate octave difference and note position within octave
-    const octaveDiff = Math.floor(midiNote / 12) - Math.floor(E4_MIDI / 12);
-    const noteIndex = midiNote % 12;
-    const E4_octavePosition = E4_MIDI % 12;
-
-    // Calculate scale degrees from E4
-    let degrees;
-    if (octaveDiff === 0) {
-      // Same octave
-      degrees = this.getScaleDegreesFromE(noteIndex);
-    } else {
-      // Different octave
-      degrees = this.getScaleDegreesFromE(noteIndex) + (octaveDiff * 7);
-    }
-
-    // Convert scale degrees to staff position
-    // Bottom line (E4) is at STAFF_HEIGHT/2 + LINE_SPACING * 2
-    const basePosition = this.STAFF_HEIGHT/2 + this.LINE_SPACING * 2;
-    return basePosition - (degrees * (this.LINE_SPACING / 2));
-  }
-
-  private getScaleDegreesFromE(noteIndex: number): number {
-    // Convert chromatic steps to scale degrees from E
-    const scalePositions = {
-      4: 0,  // E
-      5: 1,  // F
-      6: 1,  // F#
-      7: 2,  // G
-      8: 2,  // G#
-      9: 3,  // A
-      10: 3, // A#
-      11: 4, // B
-      0: 5,  // C
-      1: 5,  // C#
-      2: -1, // D
-      3: -1, // D#
+    return {
+      trebleNotes,
+      bassNotes,
+      startTime,
+      endTime: startTime + this.SECONDS_PER_LINE
     };
-
-    return scalePositions[noteIndex as keyof typeof scalePositions] as number;
   }
 
-  getLedgerLinePositions(midiNote: number): number[] {
-    const positions: number[] = [];
-    const E4_MIDI = 64;
-    const noteIndex = midiNote % 12;
-    const octaveDiff = Math.floor(midiNote / 12) - Math.floor(E4_MIDI / 12);
-    const degrees = this.getScaleDegreesFromE(noteIndex) + (octaveDiff * 7);
+  getMidiNotePosition(midiNote: number, isBasClef: boolean = false): number {
+    // For treble clef: Middle line (B4) is MIDI 71
+    // For bass clef: Middle line (D3) is MIDI 50
+    const referenceNote = isBasClef ? 50 : 71;
+    const referenceLine = this.STAFF_HEIGHT / 2;
 
-    if (degrees < -1) {
-      // Add ledger lines below the staff
-      // Start from D4 (-1) and go down to the note
-      for (let d = -2; d >= degrees; d -= 2) {
-        const basePosition = this.STAFF_HEIGHT/2 + this.LINE_SPACING * 2;
-        positions.push(basePosition - (d * (this.LINE_SPACING / 2)));
-      }
-    } else if (degrees > 8) {
+    // Calculate semitones from reference note
+    const semitoneDistance = midiNote - referenceNote;
+
+    // Convert semitones to staff steps (each staff line/space is 2 semitones apart on average)
+    const staffSteps = semitoneDistance / 2;
+
+    // Convert steps to pixels (each step is half a line spacing)
+    return referenceLine - (staffSteps * this.LINE_SPACING);
+  }
+
+  getLedgerLinePositions(midiNote: number, isBasClef: boolean): number[] {
+    const positions: number[] = [];
+    const notePosition = this.getMidiNotePosition(midiNote, isBasClef);
+    const staffTop = this.STAFF_HEIGHT/2 - this.LINE_SPACING * 2;
+    const staffBottom = this.STAFF_HEIGHT/2 + this.LINE_SPACING * 2;
+
+    if (notePosition < staffTop) {
       // Add ledger lines above the staff
-      // Start from G5 (9) and go up to the note
-      for (let d = 10; d <= degrees; d += 2) {
-        const basePosition = this.STAFF_HEIGHT/2 + this.LINE_SPACING * 2;
-        positions.push(basePosition - (d * (this.LINE_SPACING / 2)));
+      for (let pos = staffTop - this.LINE_SPACING; pos >= notePosition - this.LINE_SPACING; pos -= this.LINE_SPACING) {
+        positions.push(pos);
+      }
+    } else if (notePosition > staffBottom) {
+      // Add ledger lines below the staff
+      for (let pos = staffBottom + this.LINE_SPACING; pos <= notePosition + this.LINE_SPACING; pos += this.LINE_SPACING) {
+        positions.push(pos);
       }
     }
 
     return positions;
   }
 
-  getTimePosition(time: number, staffLine: StaffLine): string {
+  shouldDrawStem(midiNote: number): boolean {
+    return true;
+  }
+
+  getTimePosition(time: number, staffLine: PianoStaffLine): string {
     const startPadding = 15;
     const availableWidth = 85;
     const relativePosition = (time - staffLine.startTime) / this.SECONDS_PER_LINE;
     return (startPadding + relativePosition * availableWidth) + '%';
   }
 
-  getLedgerLineStart(time: number, staffLine: StaffLine): string {
+  getLedgerLineStart(time: number, staffLine: PianoStaffLine): string {
     const basePosition = parseFloat(this.getTimePosition(time, staffLine));
     return (basePosition - 2) + '%';
   }
 
-  getLedgerLineEnd(time: number, staffLine: StaffLine): string {
+  getLedgerLineEnd(time: number, staffLine: PianoStaffLine): string {
     const basePosition = parseFloat(this.getTimePosition(time, staffLine));
     return (basePosition + 2) + '%';
   }

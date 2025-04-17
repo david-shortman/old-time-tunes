@@ -74,5 +74,6 @@
     }
   },
   "nxCloudId": "66f971cb175f7c6817bfc2ab",
-  "useInferencePlugins": false
+  "useInferencePlugins": false,
+  "useLegacyCache": true
 }
