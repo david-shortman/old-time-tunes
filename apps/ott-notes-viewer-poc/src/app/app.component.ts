@@ -8,10 +8,9 @@ import { OTTNote } from '@ot-tunes/notes';
 import { tap } from 'rxjs';
 
 @Component({
-  standalone: true,
-  imports: [RouterModule, NgStyle, TimelineComponent],
-  selector: 'old-time-tunes-root',
-  template: `<input type="file" (change)="onFileSelected($event)" />
+    imports: [RouterModule, NgStyle, TimelineComponent],
+    selector: 'old-time-tunes-root',
+    template: `<input type="file" (change)="onFileSelected($event)" />
     <button (click)="getNotes()">Get Notes</button>
     <div style="margin-top: 30px; margin-bottom: 30px">
       @if (!areNotesLoading()) {
@@ -20,7 +19,7 @@ import { tap } from 'rxjs';
       <p>Loading...</p>
       }
     </div>
-    <button (click)="downloadMidi(notes())">Download MIDI</button>`,
+    <button (click)="downloadMidi(notes())">Download MIDI</button>`
 })
 export class AppComponent {
   private readonly http = inject(HttpClient);
@@ -41,7 +40,7 @@ export class AppComponent {
       formData.append('file', this.selectedFile, this.selectedFile.name);
 
       this.http
-        .post<Array<OTTNote>>('http://localhost:3000/api/notes', formData)
+        .post<Array<OTTNote>>('http://localhost:8000/api/notes', formData)
         .pipe(
           tap((notes) => {
             this.notes.set(notes);

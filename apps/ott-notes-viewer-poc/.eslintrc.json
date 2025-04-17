@@ -24,7 +24,8 @@
             "prefix": "old-time-tunes",
             "style": "kebab-case"
           }
-        ]
+        ],
+        "@angular-eslint/prefer-standalone": "off"
       }
     },
     {
