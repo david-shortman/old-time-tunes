@@ -7,7 +7,6 @@ import {
   isInScale,
   nearestNoteValue,
   scaleTones,
-  snapDuration,
   snapTime,
   withPitch,
   type KeyInfo,
@@ -37,6 +36,8 @@ type Props = {
   follow: boolean;
   lanes: Lane[];
   loop?: { start: number; end: number } | null;
+  /** N key toggles snapping */
+  onToggleSnap?: () => void;
   onSelect: (i: number) => void;
   onSeek: (t: number) => void;
   onChange: (notes: OTTNote[], focus?: OTTNote) => void;
@@ -57,6 +58,8 @@ type Drag = {
   orig: OTTNote;
   preview: OTTNote;
   moved: boolean;
+  /** time of the snap point currently holding the drag, for the guide line */
+  guide: number | null;
 };
 
 /**
@@ -77,6 +80,7 @@ export function NoteEditor({
   follow,
   lanes,
   loop,
+  onToggleSnap,
   onSelect,
   onSeek,
   onChange,
@@ -210,6 +214,36 @@ export function NoteEditor({
     onZoom(pxPerSec * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
   };
 
+  // ---- magnetic snapping (Final Cut style): pull to a grid line or a neighbour's edge only when
+  // close; free movement otherwise. Shift held bypasses it; N toggles it.
+  const magnet = (
+    t: number,
+    extra: number[],
+    free: boolean
+  ): { t: number; guide: number | null } => {
+    if (!snap || free) return { t, guide: null };
+    const unit = beatSeconds(tempo) * gridBeats;
+    const threshold = Math.min(unit * 0.45, 12 / pxPerSec);
+    const grid = tempo.offset + Math.round((t - tempo.offset) / unit) * unit;
+    let best: number | null = null;
+    let bestD = Infinity;
+    for (const c of [grid, ...extra]) {
+      const d = Math.abs(c - t);
+      if (d < bestD) [bestD, best] = [d, c];
+    }
+    return best !== null && bestD <= threshold
+      ? { t: best, guide: best }
+      : { t, guide: null };
+  };
+  const neighbourEdges = (index: number) => {
+    const prev = notes[index - 1];
+    const next = notes[index + 1];
+    return {
+      prevEnd: prev ? prev.startTimeSeconds + prev.durationSeconds : null,
+      nextStart: next ? next.startTimeSeconds : null,
+    };
+  };
+
   // ---- note dragging
   const beginDrag = (e: React.PointerEvent, index: number) => {
     e.stopPropagation();
@@ -232,6 +266,7 @@ export function NoteEditor({
       orig: n,
       preview: n,
       moved: false,
+      guide: null,
     });
   };
 
@@ -240,28 +275,50 @@ export function NoteEditor({
     const dx = (e.clientX - drag.x0) / pxPerSec;
     const dy = e.clientY - drag.y0;
     const o = drag.orig;
+    const free = e.shiftKey;
+    const { prevEnd, nextStart } = neighbourEdges(drag.index);
     let p: OTTNote = o;
+    let guide: number | null = null;
     if (drag.zone === 'move') {
-      let start = Math.max(0, o.startTimeSeconds + dx);
-      if (snap) start = snapTime(start, tempo, gridBeats);
+      const m = magnet(
+        Math.max(0, o.startTimeSeconds + dx),
+        [
+          prevEnd,
+          nextStart === null ? null : nextStart - o.durationSeconds,
+        ].filter((v): v is number => v !== null),
+        free
+      );
+      guide = m.guide;
       const pos = rowPos(o.pitchMidi) - dy / ROW_H;
       const pitch =
         Math.abs(dy) < ROW_H / 3 ? o.pitchMidi : nearestPitch(pos, e.altKey);
-      p = withPitch({ ...o, startTimeSeconds: start }, pitch);
+      p = withPitch({ ...o, startTimeSeconds: Math.max(0, m.t) }, pitch);
     } else if (drag.zone === 'right') {
-      let dur = Math.max(MIN_DUR, o.durationSeconds + dx);
-      if (snap) dur = snapDuration(dur, tempo);
-      p = { ...o, durationSeconds: dur };
+      const m = magnet(
+        o.startTimeSeconds + Math.max(MIN_DUR, o.durationSeconds + dx),
+        [nextStart].filter((v): v is number => v !== null),
+        free
+      );
+      guide = m.guide;
+      p = {
+        ...o,
+        durationSeconds: Math.max(MIN_DUR, m.t - o.startTimeSeconds),
+      };
     } else {
       const end = o.startTimeSeconds + o.durationSeconds;
-      let start = Math.max(0, Math.min(end - MIN_DUR, o.startTimeSeconds + dx));
-      if (snap)
-        start = Math.min(end - MIN_DUR, snapTime(start, tempo, gridBeats));
+      const m = magnet(
+        Math.max(0, Math.min(end - MIN_DUR, o.startTimeSeconds + dx)),
+        [prevEnd].filter((v): v is number => v !== null),
+        free
+      );
+      guide = m.guide;
+      const start = Math.max(0, Math.min(end - MIN_DUR, m.t));
       p = { ...o, startTimeSeconds: start, durationSeconds: end - start };
     }
     setDrag({
       ...drag,
       preview: p,
+      guide,
       moved: drag.moved || Math.abs(e.clientX - drag.x0) + Math.abs(dy) > 2,
     });
   };
@@ -311,6 +368,11 @@ export function NoteEditor({
 
   // ---- keyboard on the selected note
   const onKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      onToggleSnap?.();
+      return;
+    }
     const n = notes[selected];
     if (!n) return;
     const step = snap ? beatSeconds(tempo) * gridBeats : 0.01;
@@ -664,6 +726,16 @@ export function NoteEditor({
                   width={Math.max(1, x(loop.end) - x(loop.start))}
                   height={height}
                   className={styles.loopRegion}
+                  pointerEvents="none"
+                />
+              )}
+              {drag?.guide !== null && drag?.guide !== undefined && (
+                <line
+                  x1={x(drag.guide)}
+                  x2={x(drag.guide)}
+                  y1={lanesH}
+                  y2={height}
+                  className={styles.snapGuide}
                   pointerEvents="none"
                 />
               )}

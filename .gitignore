@@ -70,3 +70,6 @@ storage-debug.log
 # Next build output
 /dist
 apps/ott-app/out
+
+# personal recordings used for local inspection
+apps/ott-bp-api/eval/real/private-*

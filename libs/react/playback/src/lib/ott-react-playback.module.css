@@ -109,3 +109,5 @@
 
 .loopRegion { fill: rgba(194, 87, 26, 0.12); stroke: rgba(194, 87, 26, 0.5); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .groupLabel svg { vertical-align: -2px; margin-right: 2px; }
+
+.snapGuide { stroke: #d6336c; stroke-width: 1.5; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }

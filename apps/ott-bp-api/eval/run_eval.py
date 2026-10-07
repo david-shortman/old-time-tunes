@@ -167,7 +167,7 @@ def main() -> int:
     tunes = Path(a.tunes)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    inputs = sorted(p for p in tunes.iterdir() if p.suffix.lower() in ('.abc', '.wav', '.mp3'))
+    inputs = sorted(p for p in tunes.iterdir() if p.suffix.lower() in ('.abc', '.wav', '.mp3', '.m4a', '.ogg', '.flac'))
     if not inputs:
         print(f"no .abc/.wav/.mp3 files in {tunes}", file=sys.stderr)
         return 1

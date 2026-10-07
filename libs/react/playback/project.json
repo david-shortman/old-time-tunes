@@ -22,7 +22,9 @@
     },
     "build-storybook": {
       "executor": "@nx/storybook:build",
-      "outputs": ["{options.outputDir}"],
+      "outputs": [
+        "{options.outputDir}"
+      ],
       "options": {
         "outputDir": "dist/storybook/ott-react-playback",
         "configDir": "libs/react/playback/.storybook"
@@ -41,7 +43,9 @@
     },
     "static-storybook": {
       "executor": "@nx/web:file-server",
-      "dependsOn": ["build-storybook"],
+      "dependsOn": [
+        "build-storybook"
+      ],
       "options": {
         "buildTarget": "ott-react-playback:build-storybook",
         "staticFilePath": "dist/storybook/ott-react-playback",
@@ -51,6 +55,15 @@
         "ci": {
           "buildTarget": "ott-react-playback:build-storybook:ci"
         }
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": [
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
+      "options": {
+        "jestConfig": "libs/react/playback/jest.config.ts"
       }
     }
   }

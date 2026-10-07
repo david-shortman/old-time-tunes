@@ -114,50 +114,118 @@ export function degreeLabel(midi: number, key: KeyInfo): string {
 
 // ---------------------------------------------------------------- tempo
 
-/** Beat estimate from inter-onset intervals. Treats the most common short interval as an eighth note. */
+/** How "simple" an inter-onset interval of k grid units (eighths) is: 1, 2, 4 beats-ish are cheap. */
+const SIMPLICITY: Record<number, number> = { 1: 1, 2: 1, 3: 0.6, 4: 0.9, 6: 0.5, 8: 0.6 };
+const simplicity = (k: number) => SIMPLICITY[k] ?? (k > 8 ? 0.1 : 0.3);
+
+/**
+ * Fit a beat grid to the onsets. Tries beat periods from 40 to 220 BPM, scores each by how well
+ * the inter-onset intervals land on whole eighth notes (favouring simple ratios and a human
+ * tempo), refines the winner by least squares, then resolves the half/double ambiguity so that
+ * the most common interval is a quarter or eighth. Works for plucked instruments where the
+ * sounding length says nothing about rhythm: only onsets are used.
+ */
 export function estimateTempo(notes: ReadonlyArray<OTTNote>): Tempo {
   const onsets = [...notes].map((n) => n.startTimeSeconds).sort((a, b) => a - b);
   const first = onsets[0] ?? 0;
   const iois: number[] = [];
   for (let i = 1; i < onsets.length; i++) {
     const d = onsets[i] - onsets[i - 1];
-    if (d >= 0.09 && d <= 1.5) iois.push(d);
+    if (d >= 0.08 && d <= 2.5) iois.push(d);
   }
-  if (iois.length < 4) return { bpm: 120, offset: first };
+  if (iois.length < 3) return { bpm: 100, offset: first };
 
-  // mode of a 20 ms histogram
-  const bins = new Map<number, number>();
-  for (const d of iois) {
-    const b = Math.round(d / 0.02);
-    bins.set(b, (bins.get(b) ?? 0) + 1);
-  }
-  let modeBin = 0;
-  let modeCount = -1;
-  for (const [b, c] of bins) if (c > modeCount) [modeBin, modeCount] = [b, c];
-  const mode = modeBin * 0.02;
-  // refine with the mean of intervals near the mode
-  const near = iois.filter((d) => Math.abs(d - mode) < mode * 0.15);
-  const unit = near.reduce((s, v) => s + v, 0) / near.length;
-  let beat = unit < 0.36 ? unit * 2 : unit; // short unit → eighth note
-  while (60 / beat > 200) beat *= 2;
-  while (60 / beat < 55) beat /= 2;
-  const bpm = Math.round((60 / beat) * 10) / 10;
-
-  // phase: which offset lines the most onsets up with an eighth-note grid
-  const grid = beat / 2;
-  let bestPhase = first % grid;
-  let bestScore = -1;
-  for (let phase = 0; phase < grid; phase += 0.005) {
+  let bestUnit = 0.3;
+  let bestScore = -Infinity;
+  for (let bpm = 40; bpm <= 220; bpm *= 1.01) {
+    const unit = 60 / bpm / 2; // eighth note
     let score = 0;
-    for (const o of onsets) {
-      const r = (((o - phase) % grid) + grid) % grid;
-      if (Math.min(r, grid - r) < 0.03) score++;
+    for (const d of iois) {
+      const r = d / unit;
+      const k = Math.max(1, Math.round(r));
+      const err = Math.abs(r - k); // in units
+      score += simplicity(k) * Math.exp(-(err * err) / (2 * 0.12 * 0.12));
     }
-    if (score > bestScore) [bestScore, bestPhase] = [score, phase];
+    // mild prior for human tempi
+    score *= Math.exp(-((Math.log(bpm / 110) / 0.6) ** 2) / 2);
+    if (score > bestScore) [bestScore, bestUnit] = [score, unit];
   }
-  // express the offset as the first grid point at or before the first note
-  const offset = first - ((((first - bestPhase) % beat) + beat) % beat);
+
+  // refine: least-squares unit over the intervals that fit
+  let num = 0;
+  let den = 0;
+  const ks: number[] = [];
+  for (const d of iois) {
+    const k = Math.max(1, Math.round(d / bestUnit));
+    if (Math.abs(d / bestUnit - k) < 0.25) {
+      num += d * k;
+      den += k * k;
+      ks.push(k);
+    }
+  }
+  let unit = den ? num / den : bestUnit;
+
+  // half/double: make the most common interval a quarter (k=2) or eighth (k=1)
+  const counts = new Map<number, number>();
+  for (const k of ks) counts.set(k, (counts.get(k) ?? 0) + 1);
+  const modal = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 2;
+  if (modal >= 4 && modal % 2 === 0) unit *= 2; // intervals were halves at this tempo → slower beat
+  let bpm = 60 / (unit * 2);
+  while (bpm > 190) bpm /= 2;
+  while (bpm < 50) bpm *= 2;
+  bpm = Math.round(bpm * 10) / 10;
+
+  // phase: median residual of onsets against an eighth-note grid anchored on the first onset
+  const u = 60 / bpm / 2;
+  const residuals = onsets.map((o) => ((((o - first) % u) + u) % u)).map((r) => (r > u / 2 ? r - u : r)).sort((a, b) => a - b);
+  const phase = residuals[Math.floor(residuals.length / 2)] ?? 0;
+  const beat = u * 2;
+  const offset = first + phase - Math.floor((first + phase) / beat) * beat;
   return { bpm, offset: Math.max(0, offset) };
+}
+
+/**
+ * Make the rhythm regular: snap every onset to the grid and give each note the width of the gap
+ * to the next onset, in grid units, so a tune of quarter notes shows as even quarter-note blocks.
+ * A gap longer than two beats is treated as a rest: the note keeps its own (quantised) length.
+ */
+export function normalizeRhythm(notes: ReadonlyArray<OTTNote>, tempo: Tempo, gridBeats: number): OTTNote[] {
+  const unit = (60 / tempo.bpm) * gridBeats;
+  const beat = 60 / tempo.bpm;
+  const sorted = [...notes].sort((a, b) => a.startTimeSeconds - b.startTimeSeconds || a.pitchMidi - b.pitchMidi);
+  const snapStart = (t: number) => Math.max(0, tempo.offset + Math.round((t - tempo.offset) / unit) * unit);
+
+  // Two onsets closer than half a grid unit are one note with a pitch glitch (a plucked
+  // instrument's attack often reads as a wrong pitch for a few frames): keep the longer one.
+  const kept: OTTNote[] = [];
+  for (const n of sorted) {
+    const prev = kept[kept.length - 1];
+    if (prev && n.startTimeSeconds - prev.startTimeSeconds < unit / 2) {
+      if (n.durationSeconds > prev.durationSeconds) kept[kept.length - 1] = n;
+      continue;
+    }
+    kept.push(n);
+  }
+
+  const starts: number[] = [];
+  for (const n of kept) {
+    let st = snapStart(n.startTimeSeconds);
+    const prev = starts[starts.length - 1];
+    if (prev !== undefined && st <= prev + 1e-6) st = prev + unit; // keep order; no two notes on one slot
+    starts.push(st);
+  }
+  return kept.map((n, i) => {
+    const start = starts[i];
+    const next = starts[i + 1];
+    const own = Math.max(unit, Math.round(n.durationSeconds / unit) * unit);
+    let duration: number;
+    if (next === undefined) duration = own;
+    else {
+      const gap = next - start;
+      duration = gap <= 2 * beat + 1e-6 ? gap : Math.min(gap, own);
+    }
+    return { ...n, startTimeSeconds: start, durationSeconds: Math.max(unit, duration) };
+  });
 }
 
 export const beatSeconds = (tempo: Tempo) => 60 / tempo.bpm;

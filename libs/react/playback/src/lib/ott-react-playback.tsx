@@ -31,6 +31,7 @@ import {
   withPitch,
   type KeyInfo,
   type Tempo,
+  normalizeRhythm,
 } from './music';
 import styles from './ott-react-playback.module.css';
 
@@ -479,6 +480,35 @@ export function OttReactPlayback({
             }
           />
         </label>
+        <span
+          className={styles.group}
+          title="Same grid, counted twice as fast or twice as slow: quarters become eighths and back"
+        >
+          <button
+            className={styles.chip}
+            onClick={() =>
+              setTempoOverride({
+                ...tempo,
+                bpm: Math.round(tempo.bpm * 20) / 10,
+              })
+            }
+            aria-label="double the tempo"
+          >
+            ×2
+          </button>
+          <button
+            className={styles.chip}
+            onClick={() =>
+              setTempoOverride({
+                ...tempo,
+                bpm: Math.round(tempo.bpm * 5) / 10,
+              })
+            }
+            aria-label="halve the tempo"
+          >
+            ½
+          </button>
+        </span>
         <button
           className={styles.btnSmall}
           onClick={() =>
@@ -523,9 +553,17 @@ export function OttReactPlayback({
         </span>
         <button
           className={styles.btnSmall}
-          onClick={() => updateNotes(quantize(notes, tempo, gridBeats))}
+          onClick={() => updateNotes(normalizeRhythm(notes, tempo, gridBeats))}
+          title="Snap every onset to the grid and give each note the width up to the next one: regular blocks for plucked or percussive playing"
         >
-          quantize all
+          fit rhythm to grid
+        </button>
+        <button
+          className={styles.btnSmall}
+          onClick={() => updateNotes(quantize(notes, tempo, gridBeats))}
+          title="Snap starts to the grid and lengths to note values, keeping each note's own length"
+        >
+          quantize lengths
         </button>
         <span className={styles.group}>
           <button
@@ -563,6 +601,7 @@ export function OttReactPlayback({
           follow={isPlaying}
           lanes={lanes}
           loop={loop}
+          onToggleSnap={() => setSnap((v) => !v)}
           onSelect={setSelected}
           onSeek={seek}
           onChange={updateNotes}
@@ -575,9 +614,9 @@ export function OttReactPlayback({
         <div className={styles.times}>
           <span>{fmt(currentTime)}</span>
           <span className={styles.hintInline}>
-            drag a note to move it · drag its edge to change its length · hold ⌥
-            for notes outside the key · double-click to add · ⌘/ctrl+scroll to
-            zoom
+            drag a note to move it · drag its edge to change its length ·
+            snapping is magnetic: hold ⇧ to drag freely, N toggles it · ⌥ for
+            notes outside the key · double-click to add · ⌘/ctrl+scroll to zoom
           </span>
           <span>{fmt(duration)}</span>
         </div>
