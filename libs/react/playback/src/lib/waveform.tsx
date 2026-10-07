@@ -11,6 +11,11 @@ type Props = {
   color: string;
   /** time scale of the buffer relative to the timeline (synth rendered at 0.5× speed → 0.5) */
   bufferRate?: number;
+  /** seconds already played; bars before it use `playedColor` */
+  progress?: number;
+  playedColor?: string;
+  /** draw bars mirrored around the middle (default) or rising from the bottom */
+  baseline?: 'middle' | 'bottom';
 };
 
 /** A canvas waveform drawn at an explicit pixel width so it can share a zoomable time axis. */
@@ -21,6 +26,9 @@ export function Waveform({
   height,
   color,
   bufferRate = 1,
+  progress,
+  playedColor,
+  baseline = 'middle',
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bins = Math.max(1, Math.floor(width / 2));
@@ -46,14 +54,28 @@ export function Waveform({
     let norm = 0;
     for (let i = 0; i < peaks.length; i++) if (peaks[i] > norm) norm = peaks[i];
     norm = norm || 1;
-    const mid = height / 2;
     const barW = width / peaks.length;
-    ctx.fillStyle = color;
+    const playedBars =
+      progress !== undefined && duration > 0
+        ? Math.floor((progress / duration) * peaks.length)
+        : -1;
     for (let i = 0; i < peaks.length; i++) {
-      const amp = (peaks[i] / norm) * (mid - 2);
-      ctx.fillRect(i * barW, mid - amp, Math.max(1, barW - 0.4), amp * 2 || 1);
+      ctx.fillStyle = i < playedBars && playedColor ? playedColor : color;
+      if (baseline === 'bottom') {
+        const h = (peaks[i] / norm) * (height - 2);
+        ctx.fillRect(i * barW, height - h, Math.max(1, barW - 0.6), h || 1);
+      } else {
+        const mid = height / 2;
+        const amp = (peaks[i] / norm) * (mid - 2);
+        ctx.fillRect(
+          i * barW,
+          mid - amp,
+          Math.max(1, barW - 0.4),
+          amp * 2 || 1
+        );
+      }
     }
-  }, [peaks, width, height, color]);
+  }, [peaks, width, height, color, progress, playedColor, duration, baseline]);
 
   return (
     <canvas

@@ -13,7 +13,18 @@ import { OttReactPlayback } from '@old-time-tunes/ott-react-playback';
 />
 ```
 
-What it shows, top to bottom:
+Two faces, sharing one transport (audio element, synth, playhead, speed, loop):
+
+- **Player** (`learner-view.tsx`, `defaultMode="player"`, the library's tune page):
+  one big current note coloured by string, its fingering, a "next" hint, a
+  large fingerboard, previous/next note, play, speed; under it a SoundCloud-style
+  strip: the whole recording's waveform with the played part coloured and the
+  current window marked, and four string rows (E A D G) of finger-number chips
+  zoomed to 8 s around the playhead. Click either strip to seek.
+- **Editor** (default on the add-recording page), with a "Preview player" button
+  to switch; the player has "Back to editor".
+
+What the editor shows, top to bottom:
 
 - the note sounding right now, its name, and where it sits on a first-position
   fiddle fingerboard (`violinFingering` in `fingering.ts`)

@@ -251,6 +251,7 @@ function TuneView() {
           notes={tune.transcription}
           playedNotes={tune.playedTranscription}
           autoFit={false}
+          defaultMode="player"
           fileName={tune.title.replace(/[^\w]+/g, '-').toLowerCase()}
           initialGrid={tune.grid}
           onNotesChange={(active, st) =>

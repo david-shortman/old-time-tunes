@@ -139,3 +139,26 @@
 .menuItem:disabled { color: var(--muted); cursor: default; }
 .menuItem kbd { font: inherit; font-size: 0.75rem; color: var(--muted); border: 1px solid rgba(0,0,0,0.15); border-radius: 4px; padding: 0 5px; }
 .menuDanger { color: #b42318; }
+
+/* ---- learner / player view */
+.learner { display: grid; gap: 16px; min-width: 0; }
+.learnerHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.learnerNow { display: grid; grid-template-columns: minmax(0, 1fr) auto; min-width: 0; gap: 24px; align-items: center; background: var(--panel); border-radius: 14px; padding: 24px 28px; min-height: 300px; }
+.learnerNowText { display: grid; gap: 8px; align-content: center; }
+.learnerNote { font-size: 7rem; font-weight: 800; line-height: 0.95; letter-spacing: -0.02em; color: var(--accent); }
+.learnerFingering { font-size: 1.5rem; color: var(--ink); }
+.learnerNext { color: var(--muted); font-size: 1rem; margin-top: 6px; }
+.learnerBoard svg { width: 200px; height: 275px; }
+.learnerTime { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.9rem; margin-left: 6px; }
+.strip { background: var(--panel); border-radius: 12px; padding: 12px 12px 8px; display: grid; gap: 4px; min-width: 0; overflow: hidden; }
+.stripWave { position: relative; cursor: pointer; }
+.stripWindow { position: absolute; top: 0; bottom: 0; background: rgba(47,111,159,0.08); border-left: 1px solid rgba(47,111,159,0.35); border-right: 1px solid rgba(47,111,159,0.35); pointer-events: none; }
+.stripPlayhead { position: absolute; top: 0; bottom: 0; width: 2px; background: #d6336c; pointer-events: none; }
+.stripFingers { display: block; cursor: pointer; }
+.stripStringLabel { font-size: 10px; font-weight: 700; }
+.stripFinger { font-size: 11px; font-weight: 700; fill: #fff; text-anchor: middle; }
+.stripLegend { color: var(--muted); font-size: 0.75rem; text-align: center; margin-top: 4px; }
+@media (max-width: 640px) {
+  .learnerNow { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .learnerNote { font-size: 4.5rem; }
+}

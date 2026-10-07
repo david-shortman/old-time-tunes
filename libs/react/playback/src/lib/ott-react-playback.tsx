@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pause,
   Play,
+  Eye,
   SkipBack,
   SkipForward,
   Trash2,
@@ -22,6 +23,7 @@ import { decodeAudioUrl, notesEnd, renderNotes } from './synth';
 import { NoteEditor, type Lane } from './note-editor';
 import { canMerge, mergeNotes } from './edits';
 import { Fingerboard } from './fingerboard';
+import { LearnerView } from './learner-view';
 import {
   ALL_KEYS,
   NOTE_VALUES,
@@ -69,6 +71,8 @@ export type OttReactPlaybackProps = {
   initialGrid?: Grid;
   /** Fires when the user changes key, tempo or downbeat. */
   onGridChange?: (grid: Grid) => void;
+  /** Start in the learner's player or in the editor. */
+  defaultMode?: 'editor' | 'player';
 };
 
 export type LoopRegion = { start: number; end: number };
@@ -106,7 +110,9 @@ export function OttReactPlayback({
   fileName = 'notes',
   initialGrid,
   onGridChange,
+  defaultMode = 'editor',
 }: OttReactPlaybackProps) {
+  const [uiMode, setUiMode] = useState<'editor' | 'player'>(defaultMode);
   // ---- grid: detected from the as-played notes unless a saved grid is given
   const playedSource = useMemo(
     () => sortNotes(playedNotes ?? notesProp),
@@ -539,474 +545,511 @@ export function OttReactPlayback({
         <audio ref={audioRef} src={audioUrl} preload="auto" onEnded={pause} />
       )}
 
-      <div className={styles.header}>
-        <div>
-          {title && <h2 className={styles.title}>{title}</h2>}
-          {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
-        </div>
-        <div className={styles.subtitle}>{notes.length} notes</div>
-      </div>
-
-      <div className={styles.now}>
-        {activeNote ? (
-          <div>
-            <div className={styles.nowNote}>{activeNote.noteName}</div>
-            <div className={styles.nowFingering}>
-              {fingering?.label ?? 'outside fiddle range'}
-            </div>
-          </div>
-        ) : (
-          <div className={styles.nowIdle}>
-            {isPlaying
-              ? '…'
-              : 'Press play. The current note and where to put your finger show here.'}
-          </div>
-        )}
-        <Fingerboard fingering={fingering} />
-      </div>
-
-      {banner && state.fitted && (
-        <div className={styles.banner} role="status">
-          <span>
-            <strong>Rhythm fitted to the grid</strong> at {tempo.bpm} BPM:
-            onsets snapped to {gridLabel} notes and each note stretched to the
-            next one, so widths are regular.
-            {banner.merged > 0
-              ? ` ${banner.merged} attack glitch${
-                  banner.merged === 1 ? '' : 'es'
-                } merged.`
-              : ''}{' '}
-            If it reads as eighths when you hear quarters, press ×2. Compare
-            with the as-played version using the switch.
-          </span>
-          <span className={styles.bannerActions}>
-            <button className={styles.btnSmall} onClick={undoFit}>
-              <Undo2 size={14} /> Undo
-            </button>
-            <button className={styles.link} onClick={() => setBanner(null)}>
-              dismiss
-            </button>
-          </span>
-        </div>
-      )}
-
-      {/* grid toolbar */}
-      <div className={styles.toolbar}>
-        <span
-          className={styles.group}
-          role="group"
-          aria-label="which version of the notes to show"
-        >
-          <button
-            className={`${styles.chip} ${
-              state.view === 'played' ? styles.chipOn : ''
-            }`}
-            onClick={() => setView('played')}
-            title="The transcription as the model heard it"
-          >
-            as played
-          </button>
-          <button
-            className={`${styles.chip} ${
-              state.view === 'fitted' ? styles.chipOn : ''
-            }`}
-            onClick={() => setView('fitted')}
-            title="Onsets and widths fitted to the beat grid"
-          >
-            fitted
-          </button>
-        </span>
-        <label className={styles.tool}>
-          key
-          <select
-            value={keyInfo.name}
-            onChange={(e) =>
-              setKeyOverride(
-                ALL_KEYS.find((k) => k.name === e.target.value) ?? null
-              )
-            }
-          >
-            {ALL_KEYS.map((k) => (
-              <option key={k.name} value={k.name}>
-                {k.name}
-                {k.name === autoKey.name ? ' (detected)' : ''}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.tool}>
-          bpm
-          <input
-            type="number"
-            min={40}
-            max={240}
-            step={0.5}
-            value={tempo.bpm}
-            onChange={(e) =>
-              setTempoOverride({
-                ...tempo,
-                bpm: Number(e.target.value) || tempo.bpm,
-              })
-            }
-          />
-        </label>
-        <span
-          className={styles.group}
-          title="Same grid, counted twice as fast or twice as slow: quarters become eighths and back"
-        >
-          <button
-            className={styles.chip}
-            onClick={() =>
-              setTempoOverride({
-                ...tempo,
-                bpm: Math.round(tempo.bpm * 20) / 10,
-              })
-            }
-            aria-label="double the tempo"
-          >
-            ×2
-          </button>
-          <button
-            className={styles.chip}
-            onClick={() =>
-              setTempoOverride({
-                ...tempo,
-                bpm: Math.round(tempo.bpm * 5) / 10,
-              })
-            }
-            aria-label="halve the tempo"
-          >
-            ½
-          </button>
-        </span>
-        <button
-          className={styles.btnSmall}
-          onClick={() =>
-            setTempoOverride({
-              ...tempo,
-              offset: selectedNote
-                ? selectedNote.startTimeSeconds
-                : currentTime,
-            })
-          }
-          title="Line the bar lines up with the selected note (or the playhead)"
-        >
-          downbeat here
-        </button>
-        {tempoOverride && (
-          <button
-            className={styles.btnSmall}
-            onClick={() => setTempoOverride(null)}
-          >
-            auto tempo
-          </button>
-        )}
-        <span className={styles.group}>
-          <button
-            className={`${styles.chip} ${snap ? styles.chipOn : ''}`}
-            onClick={() => setSnap((s) => !s)}
-            title="Magnetic snapping to the grid and neighbouring notes (hold ⇧ to bypass, N toggles)"
-          >
-            <Grid3x3 size={14} /> snap
-          </button>
-          {GRIDS.map((g) => (
-            <button
-              key={g.beats}
-              className={`${styles.chip} ${
-                gridBeats === g.beats ? styles.chipOn : ''
-              }`}
-              onClick={() => setGridBeats(g.beats)}
-            >
-              {g.label}
-            </button>
-          ))}
-        </span>
-        <button
-          className={styles.btnSmall}
-          onClick={refit}
-          title="Snap every onset to the grid and give each note the width up to the next one: regular blocks for plucked or percussive playing"
-        >
-          fit rhythm to grid
-        </button>
-        <button
-          className={styles.btnSmall}
-          onClick={() => updateNotes(quantize(notes, tempo, gridBeats))}
-          title="Snap starts to the grid and lengths to note values, keeping each note's own length"
-        >
-          quantize lengths
-        </button>
-        <span className={styles.group}>
-          <button
-            className={`${styles.chip} ${showStaff ? styles.chipOn : ''}`}
-            onClick={() => setShowStaff((v) => !v)}
-            title="Show the notes on a treble staff"
-          >
-            <Music2 size={14} /> staff
-          </button>
-          <button
-            className={styles.chip}
-            onClick={() => zoom(1 / 1.3)}
-            aria-label="zoom out"
-          >
-            <ZoomOut size={14} />
-          </button>
-          <button
-            className={styles.chip}
-            onClick={() => zoom(1.3)}
-            aria-label="zoom in"
-          >
-            <ZoomIn size={14} />
-          </button>
-          <button className={styles.chip} onClick={fit} aria-label="fit">
-            <Maximize2 size={14} />
-          </button>
-        </span>
-      </div>
-
-      <div className={styles.timeline}>
-        <NoteEditor
+      {uiMode === 'player' ? (
+        <LearnerView
+          title={title}
+          subtitle={subtitle}
           notes={notes}
           duration={duration}
           currentTime={currentTime}
-          selected={selected}
-          keyInfo={keyInfo}
-          tempo={tempo}
-          snap={snap}
-          gridBeats={gridBeats}
-          beatsPerBar={4}
-          pxPerSec={pxPerSec}
-          follow={isPlaying}
-          lanes={lanes}
-          loop={loop}
-          showStaff={showStaff}
-          onToggleSnap={() => setSnap((v) => !v)}
-          onSelect={setSelected}
+          isPlaying={isPlaying}
+          rate={rate}
+          rates={RATES}
+          originalBuffer={originalBuffer}
+          onPlay={play}
+          onPause={pause}
           onSeek={seek}
-          onChange={updateNotes}
-          onZoom={(p) =>
-            setPxPerSec(
-              Math.max(10, Math.min(16000 / Math.max(1, duration), p))
-            )
-          }
+          onRate={setRate}
+          onPrevNote={() => jumpToNote(-1)}
+          onNextNote={() => jumpToNote(1)}
+          onEdit={() => setUiMode('editor')}
         />
-        <div className={styles.times}>
-          <span>{fmt(currentTime)}</span>
-          <span className={styles.hintInline}>
-            drag a note (or a selection) to move it · drag its edge to change
-            its length · shift-click a run, ⌘/ctrl-click to add · right-click
-            for split, merge, delete · snapping is magnetic: hold ⇧ to drag
-            freely, N toggles it · ⌥ for notes outside the key · double-click to
-            add · ⌘/ctrl+scroll to zoom
-          </span>
-          <span>{fmt(duration)}</span>
-        </div>
-      </div>
-
-      <div className={styles.controls}>
-        <button
-          className={styles.btn}
-          onClick={() => jumpToNote(-1)}
-          aria-label="previous note"
-        >
-          <SkipBack size={16} /> note
-        </button>
-        <button
-          className={`${styles.btn} ${styles.btnPrimary}`}
-          onClick={isPlaying ? pause : play}
-          aria-label={isPlaying ? 'pause' : 'play'}
-        >
-          {isPlaying ? <Pause size={22} /> : <Play size={22} />}
-        </button>
-        <button
-          className={styles.btn}
-          onClick={() => jumpToNote(1)}
-          aria-label="next note"
-        >
-          note <SkipForward size={16} />
-        </button>
-        <span className={styles.group}>
-          <span className={styles.groupLabel}>hear</span>
-          {(audioUrl
-            ? (['original', 'synth', 'both'] as PlaybackMode[])
-            : (['synth'] as PlaybackMode[])
-          ).map((m) => (
-            <button
-              key={m}
-              className={`${styles.chip} ${mode === m ? styles.chipOn : ''}`}
-              onClick={() => setMode(m)}
-            >
-              {m}
-            </button>
-          ))}
-        </span>
-        <span className={styles.group}>
-          <span className={styles.groupLabel}>speed</span>
-          {RATES.map((r) => (
-            <button
-              key={r}
-              className={`${styles.chip} ${rate === r ? styles.chipOn : ''}`}
-              onClick={() => setRate(r)}
-            >
-              {r}×
-            </button>
-          ))}
-        </span>
-        <span
-          className={styles.group}
-          title="Repeat a section to break it down"
-        >
-          <span className={styles.groupLabel}>
-            <Repeat size={12} /> loop
-          </span>
-          <button className={styles.chip} onClick={setLoopStart}>
-            start here
-          </button>
-          <button className={styles.chip} onClick={setLoopEnd}>
-            end here
-          </button>
-          {selectedNotes.length > 0 && (
-            <button className={styles.chip} onClick={loopSelected}>
-              {selectedNotes.length > 1 ? 'selection' : 'this note'}
-            </button>
-          )}
-          {loop && (
-            <button
-              className={`${styles.chip} ${styles.chipOn}`}
-              onClick={() => setLoop(null)}
-            >
-              {fmt(loop.start)}–{fmt(loop.end)} ✕
-            </button>
-          )}
-        </span>
-        <button
-          className={styles.btn}
-          onClick={downloadMidi}
-          disabled={!notes.length}
-        >
-          <Download size={16} /> MIDI
-        </button>
-      </div>
-
-      <div className={styles.editor}>
-        <div className={styles.editorHead}>
-          <h3>
-            {selectedNote
-              ? `${selectedNote.noteName} · ${
-                  nearestNoteValue(selectedNote.durationSeconds, tempo).name
-                } · ${violinFingering(selectedNote.pitchMidi)?.label ?? ''}`
-              : selectedNotes.length > 1
-              ? `${selectedNotes.length} notes selected`
-              : 'Edit'}
-          </h3>
-          {selectedNotes.length > 0 && (
+      ) : (
+        <>
+          <div className={styles.header}>
+            <div>
+              {title && <h2 className={styles.title}>{title}</h2>}
+              {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
+            </div>
             <span className={styles.row}>
-              {selectedNotes.length > 1 && (
-                <button
-                  className={styles.btn}
-                  onClick={mergeSelected}
-                  disabled={!canMerge(notes, selected)}
-                  title={
-                    canMerge(notes, selected)
-                      ? 'Merge into one note'
-                      : 'Only consecutive notes of the same pitch can be merged'
-                  }
-                >
-                  merge
-                </button>
-              )}
-              <button className={styles.btn} onClick={deleteSelected}>
-                <Trash2 size={16} /> delete
+              <span className={styles.subtitle}>{notes.length} notes</span>
+              <button
+                className={styles.btn}
+                onClick={() => setUiMode('player')}
+                title="See this tune the way a learner will: big fingering, timeline of fingers, speed control"
+              >
+                <Eye size={16} /> Preview player
               </button>
             </span>
-          )}
-        </div>
-        {selectedNote ? (
-          <div className={styles.fields}>
-            <div className={styles.field}>
-              pitch
-              <span className={styles.stepper}>
-                <button
-                  className={styles.btnSmall}
-                  onClick={() => stepDegree(-1)}
-                  title="down one scale degree"
-                >
-                  ▼
+          </div>
+
+          <div className={styles.now}>
+            {activeNote ? (
+              <div>
+                <div className={styles.nowNote}>{activeNote.noteName}</div>
+                <div className={styles.nowFingering}>
+                  {fingering?.label ?? 'outside fiddle range'}
+                </div>
+              </div>
+            ) : (
+              <div className={styles.nowIdle}>
+                {isPlaying
+                  ? '…'
+                  : 'Press play. The current note and where to put your finger show here.'}
+              </div>
+            )}
+            <Fingerboard fingering={fingering} />
+          </div>
+
+          {banner && state.fitted && (
+            <div className={styles.banner} role="status">
+              <span>
+                <strong>Rhythm fitted to the grid</strong> at {tempo.bpm} BPM:
+                onsets snapped to {gridLabel} notes and each note stretched to
+                the next one, so widths are regular.
+                {banner.merged > 0
+                  ? ` ${banner.merged} attack glitch${
+                      banner.merged === 1 ? '' : 'es'
+                    } merged.`
+                  : ''}{' '}
+                If it reads as eighths when you hear quarters, press ×2. Compare
+                with the as-played version using the switch.
+              </span>
+              <span className={styles.bannerActions}>
+                <button className={styles.btnSmall} onClick={undoFit}>
+                  <Undo2 size={14} /> Undo
                 </button>
-                <input
-                  type="number"
-                  value={selectedNote.pitchMidi}
-                  min={40}
-                  max={100}
-                  onChange={(e) =>
-                    patchSelected({ pitchMidi: Number(e.target.value) })
-                  }
-                />
-                <button
-                  className={styles.btnSmall}
-                  onClick={() => stepDegree(1)}
-                  title="up one scale degree"
-                >
-                  ▲
+                <button className={styles.link} onClick={() => setBanner(null)}>
+                  dismiss
                 </button>
               </span>
             </div>
-            <label className={styles.field}>
-              length
+          )}
+
+          {/* grid toolbar */}
+          <div className={styles.toolbar}>
+            <span
+              className={styles.group}
+              role="group"
+              aria-label="which version of the notes to show"
+            >
+              <button
+                className={`${styles.chip} ${
+                  state.view === 'played' ? styles.chipOn : ''
+                }`}
+                onClick={() => setView('played')}
+                title="The transcription as the model heard it"
+              >
+                as played
+              </button>
+              <button
+                className={`${styles.chip} ${
+                  state.view === 'fitted' ? styles.chipOn : ''
+                }`}
+                onClick={() => setView('fitted')}
+                title="Onsets and widths fitted to the beat grid"
+              >
+                fitted
+              </button>
+            </span>
+            <label className={styles.tool}>
+              key
               <select
-                value={
-                  nearestNoteValue(selectedNote.durationSeconds, tempo).beats
-                }
+                value={keyInfo.name}
                 onChange={(e) =>
-                  patchSelected({
-                    durationSeconds:
-                      Number(e.target.value) * beatSeconds(tempo),
-                  })
+                  setKeyOverride(
+                    ALL_KEYS.find((k) => k.name === e.target.value) ?? null
+                  )
                 }
               >
-                {NOTE_VALUES.map((v) => (
-                  <option key={v.beats} value={v.beats}>
-                    {v.name}
+                {ALL_KEYS.map((k) => (
+                  <option key={k.name} value={k.name}>
+                    {k.name}
+                    {k.name === autoKey.name ? ' (detected)' : ''}
                   </option>
                 ))}
               </select>
             </label>
-            <label className={styles.field}>
-              start (s)
+            <label className={styles.tool}>
+              bpm
               <input
                 type="number"
-                step={0.01}
-                value={Number(selectedNote.startTimeSeconds.toFixed(3))}
+                min={40}
+                max={240}
+                step={0.5}
+                value={tempo.bpm}
                 onChange={(e) =>
-                  patchSelected({
-                    startTimeSeconds: Math.max(0, Number(e.target.value)),
+                  setTempoOverride({
+                    ...tempo,
+                    bpm: Number(e.target.value) || tempo.bpm,
                   })
                 }
               />
             </label>
-            <label className={styles.field}>
-              duration (s)
-              <input
-                type="number"
-                step={0.01}
-                min={0.03}
-                value={Number(selectedNote.durationSeconds.toFixed(3))}
-                onChange={(e) =>
-                  patchSelected({
-                    durationSeconds: Math.max(0.03, Number(e.target.value)),
+            <span
+              className={styles.group}
+              title="Same grid, counted twice as fast or twice as slow: quarters become eighths and back"
+            >
+              <button
+                className={styles.chip}
+                onClick={() =>
+                  setTempoOverride({
+                    ...tempo,
+                    bpm: Math.round(tempo.bpm * 20) / 10,
                   })
                 }
-              />
-            </label>
+                aria-label="double the tempo"
+              >
+                ×2
+              </button>
+              <button
+                className={styles.chip}
+                onClick={() =>
+                  setTempoOverride({
+                    ...tempo,
+                    bpm: Math.round(tempo.bpm * 5) / 10,
+                  })
+                }
+                aria-label="halve the tempo"
+              >
+                ½
+              </button>
+            </span>
+            <button
+              className={styles.btnSmall}
+              onClick={() =>
+                setTempoOverride({
+                  ...tempo,
+                  offset: selectedNote
+                    ? selectedNote.startTimeSeconds
+                    : currentTime,
+                })
+              }
+              title="Line the bar lines up with the selected note (or the playhead)"
+            >
+              downbeat here
+            </button>
+            {tempoOverride && (
+              <button
+                className={styles.btnSmall}
+                onClick={() => setTempoOverride(null)}
+              >
+                auto tempo
+              </button>
+            )}
+            <span className={styles.group}>
+              <button
+                className={`${styles.chip} ${snap ? styles.chipOn : ''}`}
+                onClick={() => setSnap((s) => !s)}
+                title="Magnetic snapping to the grid and neighbouring notes (hold ⇧ to bypass, N toggles)"
+              >
+                <Grid3x3 size={14} /> snap
+              </button>
+              {GRIDS.map((g) => (
+                <button
+                  key={g.beats}
+                  className={`${styles.chip} ${
+                    gridBeats === g.beats ? styles.chipOn : ''
+                  }`}
+                  onClick={() => setGridBeats(g.beats)}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </span>
+            <button
+              className={styles.btnSmall}
+              onClick={refit}
+              title="Snap every onset to the grid and give each note the width up to the next one: regular blocks for plucked or percussive playing"
+            >
+              fit rhythm to grid
+            </button>
+            <button
+              className={styles.btnSmall}
+              onClick={() => updateNotes(quantize(notes, tempo, gridBeats))}
+              title="Snap starts to the grid and lengths to note values, keeping each note's own length"
+            >
+              quantize lengths
+            </button>
+            <span className={styles.group}>
+              <button
+                className={`${styles.chip} ${showStaff ? styles.chipOn : ''}`}
+                onClick={() => setShowStaff((v) => !v)}
+                title="Show the notes on a treble staff"
+              >
+                <Music2 size={14} /> staff
+              </button>
+              <button
+                className={styles.chip}
+                onClick={() => zoom(1 / 1.3)}
+                aria-label="zoom out"
+              >
+                <ZoomOut size={14} />
+              </button>
+              <button
+                className={styles.chip}
+                onClick={() => zoom(1.3)}
+                aria-label="zoom in"
+              >
+                <ZoomIn size={14} />
+              </button>
+              <button className={styles.chip} onClick={fit} aria-label="fit">
+                <Maximize2 size={14} />
+              </button>
+            </span>
           </div>
-        ) : (
-          <p className={styles.hint}>
-            Click a note to select it; shift-click for a run of notes,
-            ⌘/ctrl-click to add one. Arrow keys move the selection by scale
-            degree or grid step, S splits, M merges same-pitch neighbours,
-            Delete removes. Right-click for the menu.
-          </p>
-        )}
-      </div>
+
+          <div className={styles.timeline}>
+            <NoteEditor
+              notes={notes}
+              duration={duration}
+              currentTime={currentTime}
+              selected={selected}
+              keyInfo={keyInfo}
+              tempo={tempo}
+              snap={snap}
+              gridBeats={gridBeats}
+              beatsPerBar={4}
+              pxPerSec={pxPerSec}
+              follow={isPlaying}
+              lanes={lanes}
+              loop={loop}
+              showStaff={showStaff}
+              onToggleSnap={() => setSnap((v) => !v)}
+              onSelect={setSelected}
+              onSeek={seek}
+              onChange={updateNotes}
+              onZoom={(p) =>
+                setPxPerSec(
+                  Math.max(10, Math.min(16000 / Math.max(1, duration), p))
+                )
+              }
+            />
+            <div className={styles.times}>
+              <span>{fmt(currentTime)}</span>
+              <span className={styles.hintInline}>
+                drag a note (or a selection) to move it · drag its edge to
+                change its length · shift-click a run, ⌘/ctrl-click to add ·
+                right-click for split, merge, delete · snapping is magnetic:
+                hold ⇧ to drag freely, N toggles it · ⌥ for notes outside the
+                key · double-click to add · ⌘/ctrl+scroll to zoom
+              </span>
+              <span>{fmt(duration)}</span>
+            </div>
+          </div>
+
+          <div className={styles.controls}>
+            <button
+              className={styles.btn}
+              onClick={() => jumpToNote(-1)}
+              aria-label="previous note"
+            >
+              <SkipBack size={16} /> note
+            </button>
+            <button
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              onClick={isPlaying ? pause : play}
+              aria-label={isPlaying ? 'pause' : 'play'}
+            >
+              {isPlaying ? <Pause size={22} /> : <Play size={22} />}
+            </button>
+            <button
+              className={styles.btn}
+              onClick={() => jumpToNote(1)}
+              aria-label="next note"
+            >
+              note <SkipForward size={16} />
+            </button>
+            <span className={styles.group}>
+              <span className={styles.groupLabel}>hear</span>
+              {(audioUrl
+                ? (['original', 'synth', 'both'] as PlaybackMode[])
+                : (['synth'] as PlaybackMode[])
+              ).map((m) => (
+                <button
+                  key={m}
+                  className={`${styles.chip} ${
+                    mode === m ? styles.chipOn : ''
+                  }`}
+                  onClick={() => setMode(m)}
+                >
+                  {m}
+                </button>
+              ))}
+            </span>
+            <span className={styles.group}>
+              <span className={styles.groupLabel}>speed</span>
+              {RATES.map((r) => (
+                <button
+                  key={r}
+                  className={`${styles.chip} ${
+                    rate === r ? styles.chipOn : ''
+                  }`}
+                  onClick={() => setRate(r)}
+                >
+                  {r}×
+                </button>
+              ))}
+            </span>
+            <span
+              className={styles.group}
+              title="Repeat a section to break it down"
+            >
+              <span className={styles.groupLabel}>
+                <Repeat size={12} /> loop
+              </span>
+              <button className={styles.chip} onClick={setLoopStart}>
+                start here
+              </button>
+              <button className={styles.chip} onClick={setLoopEnd}>
+                end here
+              </button>
+              {selectedNotes.length > 0 && (
+                <button className={styles.chip} onClick={loopSelected}>
+                  {selectedNotes.length > 1 ? 'selection' : 'this note'}
+                </button>
+              )}
+              {loop && (
+                <button
+                  className={`${styles.chip} ${styles.chipOn}`}
+                  onClick={() => setLoop(null)}
+                >
+                  {fmt(loop.start)}–{fmt(loop.end)} ✕
+                </button>
+              )}
+            </span>
+            <button
+              className={styles.btn}
+              onClick={downloadMidi}
+              disabled={!notes.length}
+            >
+              <Download size={16} /> MIDI
+            </button>
+          </div>
+
+          <div className={styles.editor}>
+            <div className={styles.editorHead}>
+              <h3>
+                {selectedNote
+                  ? `${selectedNote.noteName} · ${
+                      nearestNoteValue(selectedNote.durationSeconds, tempo).name
+                    } · ${violinFingering(selectedNote.pitchMidi)?.label ?? ''}`
+                  : selectedNotes.length > 1
+                  ? `${selectedNotes.length} notes selected`
+                  : 'Edit'}
+              </h3>
+              {selectedNotes.length > 0 && (
+                <span className={styles.row}>
+                  {selectedNotes.length > 1 && (
+                    <button
+                      className={styles.btn}
+                      onClick={mergeSelected}
+                      disabled={!canMerge(notes, selected)}
+                      title={
+                        canMerge(notes, selected)
+                          ? 'Merge into one note'
+                          : 'Only consecutive notes of the same pitch can be merged'
+                      }
+                    >
+                      merge
+                    </button>
+                  )}
+                  <button className={styles.btn} onClick={deleteSelected}>
+                    <Trash2 size={16} /> delete
+                  </button>
+                </span>
+              )}
+            </div>
+            {selectedNote ? (
+              <div className={styles.fields}>
+                <div className={styles.field}>
+                  pitch
+                  <span className={styles.stepper}>
+                    <button
+                      className={styles.btnSmall}
+                      onClick={() => stepDegree(-1)}
+                      title="down one scale degree"
+                    >
+                      ▼
+                    </button>
+                    <input
+                      type="number"
+                      value={selectedNote.pitchMidi}
+                      min={40}
+                      max={100}
+                      onChange={(e) =>
+                        patchSelected({ pitchMidi: Number(e.target.value) })
+                      }
+                    />
+                    <button
+                      className={styles.btnSmall}
+                      onClick={() => stepDegree(1)}
+                      title="up one scale degree"
+                    >
+                      ▲
+                    </button>
+                  </span>
+                </div>
+                <label className={styles.field}>
+                  length
+                  <select
+                    value={
+                      nearestNoteValue(selectedNote.durationSeconds, tempo)
+                        .beats
+                    }
+                    onChange={(e) =>
+                      patchSelected({
+                        durationSeconds:
+                          Number(e.target.value) * beatSeconds(tempo),
+                      })
+                    }
+                  >
+                    {NOTE_VALUES.map((v) => (
+                      <option key={v.beats} value={v.beats}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.field}>
+                  start (s)
+                  <input
+                    type="number"
+                    step={0.01}
+                    value={Number(selectedNote.startTimeSeconds.toFixed(3))}
+                    onChange={(e) =>
+                      patchSelected({
+                        startTimeSeconds: Math.max(0, Number(e.target.value)),
+                      })
+                    }
+                  />
+                </label>
+                <label className={styles.field}>
+                  duration (s)
+                  <input
+                    type="number"
+                    step={0.01}
+                    min={0.03}
+                    value={Number(selectedNote.durationSeconds.toFixed(3))}
+                    onChange={(e) =>
+                      patchSelected({
+                        durationSeconds: Math.max(0.03, Number(e.target.value)),
+                      })
+                    }
+                  />
+                </label>
+              </div>
+            ) : (
+              <p className={styles.hint}>
+                Click a note to select it; shift-click for a run of notes,
+                ⌘/ctrl-click to add one. Arrow keys move the selection by scale
+                degree or grid step, S splits, M merges same-pitch neighbours,
+                Delete removes. Right-click for the menu.
+              </p>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
