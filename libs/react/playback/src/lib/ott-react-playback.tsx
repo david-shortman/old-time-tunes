@@ -556,6 +556,7 @@ export function OttReactPlayback({
           rate={rate}
           rates={RATES}
           originalBuffer={originalBuffer}
+          beatSeconds={beatSeconds(tempo)}
           onPlay={play}
           onPause={pause}
           onSeek={seek}

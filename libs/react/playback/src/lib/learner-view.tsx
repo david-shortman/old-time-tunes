@@ -16,6 +16,8 @@ type Props = {
   rate: number;
   rates: number[];
   originalBuffer: AudioBuffer | null;
+  /** seconds per beat; the conveyor shows two beats ahead */
+  beatSeconds: number;
   onPlay: () => void;
   onPause: () => void;
   onSeek: (t: number) => void;
@@ -61,6 +63,7 @@ export function LearnerView({
   rate,
   rates,
   originalBuffer,
+  beatSeconds,
   onPlay,
   onPause,
   onSeek,
@@ -70,13 +73,21 @@ export function LearnerView({
   onEdit,
 }: Props) {
   const stripRef = useRef<HTMLDivElement>(null);
+  const laneRef = useRef<HTMLDivElement>(null);
   const [stripW, setStripW] = useState(0); // measured; nothing wide is drawn until then
+  const [laneW, setLaneW] = useState(0);
   useEffect(() => {
-    const el = stripRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setStripW(el.clientWidth));
-    setStripW(el.clientWidth);
-    ro.observe(el);
+    const strip = stripRef.current;
+    const lane = laneRef.current;
+    if (!strip || !lane) return;
+    const ro = new ResizeObserver(() => {
+      setStripW(strip.clientWidth);
+      setLaneW(lane.clientWidth);
+    });
+    setStripW(strip.clientWidth);
+    setLaneW(lane.clientWidth);
+    ro.observe(strip);
+    ro.observe(lane);
     return () => ro.disconnect();
   }, []);
 
@@ -89,16 +100,6 @@ export function LearnerView({
       ),
     [notes, currentTime]
   );
-  const upcomingIndex = useMemo(
-    () => notes.findIndex((n) => n.startTimeSeconds > currentTime + 0.01),
-    [notes, currentTime]
-  );
-  const active = activeIndex >= 0 ? notes[activeIndex] : null;
-  const upcoming = upcomingIndex >= 0 ? notes[upcomingIndex] : null;
-  const fingering = active ? violinFingering(active.pitchMidi) : null;
-  const upcomingFingering = upcoming
-    ? violinFingering(upcoming.pitchMidi)
-    : null;
 
   const x = (t: number) =>
     duration > 0 && stripW > 0 ? (t / duration) * stripW : 0;
@@ -111,6 +112,66 @@ export function LearnerView({
   const inWindow = (n: OTTNote) =>
     n.startTimeSeconds + n.durationSeconds > winStart &&
     n.startTimeSeconds < winStart + win;
+
+  // Snap-and-lock cards. The note being played sits locked on the "now" line. A beat or two before
+  // the next onset, the next card winds up (a slight pull-back) and accelerates in so it lands exactly
+  // on the beat; the old card is pushed left, shrinking and fading. Everything is a function of time.
+  const idx = useMemo(() => {
+    let k = -1;
+    for (let i = 0; i < notes.length; i++)
+      if (notes[i].startTimeSeconds <= currentTime) k = i;
+    return k;
+  }, [notes, currentTime]);
+  const current = idx >= 0 ? notes[idx] : null;
+  const next = notes[idx + 1] ?? null;
+  const prev = idx > 0 ? notes[idx - 1] : null;
+  const onDeck = notes[idx + 2] ?? null;
+  const tc = current ? current.startTimeSeconds : 0;
+  const tn = next ? next.startTimeSeconds : Infinity;
+  const lead = next ? Math.min(2 * beatSeconds, 0.85 * (tn - tc)) : 0; // anticipation window
+  const u =
+    next && lead > 0
+      ? Math.max(0, Math.min(1, (currentTime - (tn - lead)) / lead))
+      : 0; // 0 → 1 across the wind-up
+  const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+  const easeOut = (v: number) => 1 - Math.pow(1 - v, 3);
+  const center = laneW / 2;
+  const R = laneW * 0.38; // where the next card rests before it starts moving
+  const L = laneW * 0.36; // where a finished card ends up
+  const approach = Math.pow(u, 2.4); // slow start, accelerating arrival
+  const pullBack = u < 0.35 ? R * 0.07 * Math.sin(Math.PI * (u / 0.35)) : 0; // "and… here it comes"
+  const place = (
+    x: number,
+    scale: number,
+    opacity: number,
+    z: number
+  ): React.CSSProperties => ({
+    transform: `translate(${x}px, -50%) translateX(-50%) scale(${scale})`,
+    opacity,
+    zIndex: z,
+    transition: isPlaying
+      ? 'none'
+      : 'transform 260ms cubic-bezier(0.2, 0.9, 0.25, 1.15), opacity 200ms',
+  });
+  const since = current ? currentTime - tc : 0;
+  const pop = since < 0.14 ? 1 + 0.1 * (1 - since / 0.14) : 1;
+  const brace = u > 0.7 ? (u - 0.7) / 0.3 : 0; // the locked card tenses just before it's displaced
+  const cardStyles = {
+    prev: place(
+      center - L * easeOut(clamp01(since / 0.28)),
+      1 - 0.5 * easeOut(clamp01(since / 0.28)),
+      1 - 0.7 * easeOut(clamp01(since / 0.28)),
+      1
+    ),
+    current: place(center - 8 * brace, pop * (1 - 0.04 * brace), 1, 3),
+    next: place(
+      center + R * (1 - approach) + pullBack,
+      0.58 + 0.3 * approach,
+      0.6 + 0.4 * approach,
+      2
+    ),
+    onDeck: place(center + R * 1.65, 0.5, 0.4, 1),
+  };
 
   const seekFromEvent = (e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -135,37 +196,53 @@ export function LearnerView({
         )}
       </div>
 
-      <div className={styles.learnerNow}>
-        <div className={styles.learnerNowText}>
-          {active ? (
-            <>
+      <div className={styles.conveyor} ref={laneRef}>
+        <div className={styles.nowLine} aria-hidden />
+        <div className={styles.nowLabel}>now</div>
+        <div className={styles.laneHint}>
+          next note winds up {Math.round(2 * beatSeconds * 10) / 10} s ahead
+        </div>
+        {laneW > 0 &&
+          (
+            [
+              ['prev', prev, cardStyles.prev, false],
+              ['onDeck', onDeck, cardStyles.onDeck, false],
+              ['next', next, cardStyles.next, false],
+              ['current', current, cardStyles.current, true],
+            ] as Array<[string, OTTNote | null, React.CSSProperties, boolean]>
+          ).map(([role, n, style, isCurrent]) => {
+            if (!n) return null;
+            const f = violinFingering(n.pitchMidi);
+            return (
               <div
-                className={styles.learnerNote}
-                style={{
-                  color: fingering ? STRING_COLOR[fingering.string] : undefined,
-                }}
+                key={`${role}-${n.startTimeSeconds}`}
+                className={`${styles.card} ${
+                  isCurrent ? styles.cardCurrent : ''
+                }`}
+                style={style}
               >
-                {active.noteName}
+                <div
+                  className={styles.cardNote}
+                  style={{ color: f ? STRING_COLOR[f.string] : undefined }}
+                >
+                  {n.noteName}
+                </div>
+                <div className={styles.cardFingering}>
+                  {f ? f.label : 'outside fiddle range'}
+                </div>
+                <div
+                  className={isCurrent ? styles.cardBoardBig : styles.cardBoard}
+                >
+                  <Fingerboard fingering={f} />
+                </div>
               </div>
-              <div className={styles.learnerFingering}>
-                {fingering?.label ?? 'outside fiddle range'}
-              </div>
-            </>
-          ) : (
-            <div className={styles.nowIdle}>
-              {isPlaying ? '…' : 'Press play and follow along.'}
-            </div>
-          )}
-          {upcoming && (
-            <div className={styles.learnerNext}>
-              next <strong>{upcoming.noteName}</strong>
-              {upcomingFingering ? ` · ${upcomingFingering.label}` : ''}
-            </div>
-          )}
-        </div>
-        <div className={styles.learnerBoard}>
-          <Fingerboard fingering={fingering} />
-        </div>
+            );
+          })}
+        {laneW > 0 && !current && !next && (
+          <div className={styles.nowIdle}>
+            {isPlaying ? '…' : 'Press play and follow along.'}
+          </div>
+        )}
       </div>
 
       <div className={styles.controls}>

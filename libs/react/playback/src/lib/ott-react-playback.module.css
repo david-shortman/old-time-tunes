@@ -162,3 +162,18 @@
   .learnerNow { grid-template-columns: 1fr; justify-items: center; text-align: center; }
   .learnerNote { font-size: 4.5rem; }
 }
+
+/* ---- conveyor of upcoming fingerings */
+.conveyor { position: relative; height: 340px; overflow: hidden; background: var(--panel); border-radius: 14px; }
+.nowLine { position: absolute; left: 50%; top: 10px; bottom: 10px; width: 2px; background: rgba(214,51,108,0.5); transform: translateX(-50%); }
+.nowLabel { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: #d6336c; }
+.laneHint { position: absolute; right: 12px; top: 8px; font-size: 0.75rem; color: var(--muted); }
+.card { position: absolute; left: 0; top: 50%; width: 220px; display: grid; justify-items: center; gap: 4px; text-align: center; will-change: transform, opacity; pointer-events: none; }
+.cardNote { font-size: 4.5rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+.cardCurrent .cardNote { font-size: 5.5rem; }
+.cardFingering { font-size: 1rem; color: var(--ink); }
+.cardCurrent .cardFingering { font-size: 1.15rem; font-weight: 600; }
+.cardBoard svg { width: 72px; height: 99px; }
+.cardBoardBig svg { width: 120px; height: 165px; }
+.conveyor .nowIdle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+@media (max-width: 640px) { .conveyor { height: 300px; } .cardNote { font-size: 3.2rem; } .cardCurrent .cardNote { font-size: 4rem; } }

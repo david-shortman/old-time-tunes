@@ -16,8 +16,12 @@ import { OttReactPlayback } from '@old-time-tunes/ott-react-playback';
 Two faces, sharing one transport (audio element, synth, playhead, speed, loop):
 
 - **Player** (`learner-view.tsx`, `defaultMode="player"`, the library's tune page):
-  one big current note coloured by string, its fingering, a "next" hint, a
-  large fingerboard, previous/next note, play, speed; under it a SoundCloud-style
+  a snap-and-lock lane: the note being played sits locked on a "now" line,
+  big, with its fingerboard; a beat or two before the next onset the next card
+  winds up (a slight pull-back) and accelerates in to land exactly on the beat,
+  pushing the old card left where it shrinks and fades; one more card waits on
+  deck. Motion is a pure function of the playhead, so it has momentum while
+  playing and springs when you step with previous/next. Then transport, speed; under it a SoundCloud-style
   strip: the whole recording's waveform with the played part coloured and the
   current window marked, and four string rows (E A D G) of finger-number chips
   zoomed to 8 s around the playhead. Click either strip to seek.
