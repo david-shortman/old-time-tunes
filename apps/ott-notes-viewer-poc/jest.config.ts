@@ -1,7 +1,7 @@
 /* eslint-disable */
 export default {
   displayName: 'ott-notes-viewer-poc',
-  preset: '../../jest.preset.js',
+  preset: '../../jest.preset.cjs',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   coverageDirectory: '../../coverage/apps/ott-notes-viewer-poc',
   transform: {
