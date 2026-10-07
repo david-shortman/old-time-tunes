@@ -43,6 +43,7 @@ function TuneView() {
   const [error, setError] = useState<string | null>(null);
   const pending = useRef<{
     transcription?: OTTNote[];
+    playedTranscription?: OTTNote[];
     grid?: TuneRecord['grid'];
   }>({});
   const timer = useRef<number>();
@@ -82,6 +83,7 @@ function TuneView() {
   /** Note and grid edits save a moment after the last change. */
   const queueSave = (patch: {
     transcription?: OTTNote[];
+    playedTranscription?: OTTNote[];
     grid?: TuneRecord['grid'];
   }) => {
     pending.current = { ...pending.current, ...patch };
@@ -247,9 +249,17 @@ function TuneView() {
           subtitle="changes to notes save automatically"
           audioUrl={audioUrl}
           notes={tune.transcription}
+          playedNotes={tune.playedTranscription}
+          autoFit={false}
           fileName={tune.title.replace(/[^\w]+/g, '-').toLowerCase()}
           initialGrid={tune.grid}
-          onNotesChange={(notes) => queueSave({ transcription: notes })}
+          onNotesChange={(active, st) =>
+            queueSave({
+              transcription: active,
+              playedTranscription:
+                st.view === 'fitted' && st.fitted ? st.played : undefined,
+            })
+          }
           onGridChange={(grid) => queueSave({ grid })}
         />
       ) : (

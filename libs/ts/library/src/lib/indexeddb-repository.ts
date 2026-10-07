@@ -61,6 +61,7 @@ export class IndexedDbTuneRepository implements TuneRepository {
       .map((r) => {
         const summary: TuneSummary = { ...r };
         delete (summary as Partial<TuneRecord>).transcription;
+        delete (summary as Partial<TuneRecord>).playedTranscription;
         return summary;
       })
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));

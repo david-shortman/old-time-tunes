@@ -13,6 +13,14 @@ import {
   type Tempo,
 } from './music';
 import { Waveform } from './waveform';
+import { FONT_SPACE, GLYPHS } from './glyphs';
+import {
+  displayedAccidental,
+  keySignatureSharps,
+  ledgerSteps,
+  spell,
+  TREBLE_BOTTOM_STEP,
+} from './staff';
 import styles from './ott-react-playback.module.css';
 
 export type Lane = {
@@ -38,6 +46,8 @@ type Props = {
   loop?: { start: number; end: number } | null;
   /** N key toggles snapping */
   onToggleSnap?: () => void;
+  /** draw a treble staff lane above the ruler */
+  showStaff?: boolean;
   onSelect: (i: number) => void;
   onSeek: (t: number) => void;
   onChange: (notes: OTTNote[], focus?: OTTNote) => void;
@@ -47,6 +57,8 @@ type Props = {
 export const ROW_H = 24;
 const RULER_H = 26;
 const LANE_H = 64;
+const STAFF_H = 112;
+const SPACE = 9; // px per staff space
 const HANDLE = 7;
 const MIN_DUR = 0.03;
 
@@ -81,6 +93,7 @@ export function NoteEditor({
   lanes,
   loop,
   onToggleSnap,
+  showStaff = true,
   onSelect,
   onSeek,
   onChange,
@@ -119,7 +132,9 @@ export function NoteEditor({
 
   const width = Math.max(1, Math.ceil(duration * pxPerSec)) + 40;
   const lanesH = lanes.length * LANE_H;
-  const notesTop = lanesH + RULER_H;
+  const staffH = showStaff ? STAFF_H : 0;
+  const rulerTop = lanesH + staffH;
+  const notesTop = rulerTop + RULER_H;
   const height = notesTop + rows.length * ROW_H;
   const x = (t: number) => t * pxPerSec;
   const yTop = (midi: number) =>
@@ -366,6 +381,28 @@ export function NoteEditor({
     onChange([...notes, n], n);
   };
 
+  // ---- split a note in two (a held note the model should have heard as two repeats)
+  const splitNote = (index: number, at: number) => {
+    const n = notes[index];
+    if (!n) return;
+    const start = n.startTimeSeconds;
+    const end = start + n.durationSeconds;
+    if (end - start < 2 * MIN_DUR) return;
+    let cut = snap ? magnet(at, [], false).t : at;
+    if (cut <= start + MIN_DUR || cut >= end - MIN_DUR)
+      cut = start + n.durationSeconds / 2;
+    const first: OTTNote = { ...n, durationSeconds: cut - start };
+    const second: OTTNote = {
+      ...n,
+      startTimeSeconds: cut,
+      durationSeconds: end - cut,
+      pitchBends: [],
+    };
+    const next = [...notes];
+    next.splice(index, 1, first, second);
+    onChange(next, second);
+  };
+
   // ---- keyboard on the selected note
   const onKeyDown = (e: React.KeyboardEvent) => {
     if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.ctrlKey) {
@@ -375,6 +412,17 @@ export function NoteEditor({
     }
     const n = notes[selected];
     if (!n) return;
+    if (e.key === 's' || e.key === 'S') {
+      e.preventDefault();
+      const inside =
+        currentTime > n.startTimeSeconds + MIN_DUR &&
+        currentTime < n.startTimeSeconds + n.durationSeconds - MIN_DUR;
+      splitNote(
+        selected,
+        inside ? currentTime : n.startTimeSeconds + n.durationSeconds / 2
+      );
+      return;
+    }
     const step = snap ? beatSeconds(tempo) * gridBeats : 0.01;
     let next: OTTNote | null = null;
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -524,6 +572,11 @@ export function NoteEditor({
               {l.label}
             </div>
           ))}
+          {showStaff && (
+            <div className={styles.gutterLane} style={{ height: STAFF_H }}>
+              staff
+            </div>
+          )}
           <div className={styles.gutterRuler} style={{ height: RULER_H }}>
             {keyInfo.name}
           </div>
@@ -623,13 +676,168 @@ export function NoteEditor({
                 <text
                   key={t}
                   x={x(t) + 3}
-                  y={lanesH + 16}
+                  y={rulerTop + 16}
                   className={styles.rulerText}
                   pointerEvents="none"
                 >
                   {Math.floor(t / 60)}:{String(t % 60).padStart(2, '0')}
                 </text>
               ))}
+              {/* staff */}
+              {showStaff &&
+                (() => {
+                  const sharps = keySignatureSharps(keyInfo);
+                  const sc = SPACE / FONT_SPACE;
+                  const bottom = lanesH + 40 + 4 * SPACE; // y of the bottom line (E4)
+                  const yStep = (step: number) =>
+                    bottom - (step - TREBLE_BOTTOM_STEP) * (SPACE / 2);
+                  const G4 = 4 + 7 * 4;
+                  const SHARP_STEPS = [38, 35, 39, 36, 33, 37, 34]; // F5 C5 G5 D5 A4 E5 B4
+                  const FLAT_STEPS = [34, 37, 33, 36, 32, 35, 31]; // B4 E5 A4 D5 G4 C5 F4
+                  const sigSteps =
+                    sharps > 0
+                      ? SHARP_STEPS.slice(0, sharps)
+                      : FLAT_STEPS.slice(0, -sharps);
+                  const headW = GLYPHS.noteheadBlack.xMax * sc;
+                  const glyph = (
+                    name: keyof typeof GLYPHS,
+                    gx: number,
+                    gy: number,
+                    cls: string,
+                    scale = sc
+                  ) => (
+                    <path
+                      d={GLYPHS[name].d}
+                      transform={`translate(${gx} ${gy}) scale(${scale})`}
+                      className={cls}
+                    />
+                  );
+                  return (
+                    <g className={styles.staff}>
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <line
+                          key={i}
+                          x1={0}
+                          x2={width}
+                          y1={bottom - i * SPACE}
+                          y2={bottom - i * SPACE}
+                          className={styles.staffLine}
+                        />
+                      ))}
+                      {gridLines
+                        .filter((g) => g.kind === 'bar')
+                        .map((g, i) => (
+                          <line
+                            key={i}
+                            x1={x(g.t)}
+                            x2={x(g.t)}
+                            y1={bottom - 4 * SPACE}
+                            y2={bottom}
+                            className={styles.staffBar}
+                          />
+                        ))}
+                      {glyph('gClef', 6, yStep(G4), styles.staffGlyph)}
+                      {sigSteps.map((st, i) => (
+                        <g key={i}>
+                          {glyph(
+                            sharps > 0 ? 'accidentalSharp' : 'accidentalFlat',
+                            40 + i * 8,
+                            yStep(st),
+                            styles.staffGlyph
+                          )}
+                        </g>
+                      ))}
+                      {shown.map((n, i) => {
+                        const sp = spell(n.pitchMidi, sharps);
+                        const y = yStep(sp.step);
+                        const nx = x(n.startTimeSeconds) + 1;
+                        const v = nearestNoteValue(n.durationSeconds, tempo);
+                        const head: keyof typeof GLYPHS =
+                          v.beats >= 4
+                            ? 'noteheadWhole'
+                            : v.beats >= 2
+                            ? 'noteheadHalf'
+                            : 'noteheadBlack';
+                        const stemUp = sp.step < 34; // below the middle line
+                        const stemX = stemUp ? nx + headW - 0.6 : nx + 0.6;
+                        const stemEnd = stemUp
+                          ? y - 3.5 * SPACE
+                          : y + 3.5 * SPACE;
+                        const flags =
+                          v.beats === 0.25
+                            ? 'flag16th'
+                            : v.beats < 1
+                            ? 'flag8th'
+                            : null;
+                        const acc = displayedAccidental(sp, sharps);
+                        const cls = [
+                          styles.staffNote,
+                          i === active ? styles.staffNoteActive : '',
+                          i === selected ? styles.staffNoteSelected : '',
+                        ].join(' ');
+                        return (
+                          <g
+                            key={i}
+                            className={cls}
+                            onPointerDown={(e) => {
+                              e.stopPropagation();
+                              onSelect(i);
+                            }}
+                          >
+                            {ledgerSteps(sp.step).map((ls) => (
+                              <line
+                                key={ls}
+                                x1={nx - 3}
+                                x2={nx + headW + 3}
+                                y1={yStep(ls)}
+                                y2={yStep(ls)}
+                                className={styles.staffLine}
+                              />
+                            ))}
+                            {acc &&
+                              glyph(
+                                acc === '#'
+                                  ? 'accidentalSharp'
+                                  : acc === 'b'
+                                  ? 'accidentalFlat'
+                                  : 'accidentalNatural',
+                                nx - 8.5,
+                                y,
+                                styles.staffGlyph
+                              )}
+                            {glyph(head, nx, y, styles.staffHead)}
+                            {v.beats < 4 && (
+                              <line
+                                x1={stemX}
+                                x2={stemX}
+                                y1={y}
+                                y2={stemEnd}
+                                className={styles.staffStem}
+                              />
+                            )}
+                            {flags &&
+                              glyph(
+                                stemUp ? `${flags}Up` : `${flags}Down`,
+                                stemX,
+                                stemEnd,
+                                styles.staffHead
+                              )}
+                            {[3, 1.5, 0.75].includes(v.beats) &&
+                              glyph(
+                                'augmentationDot',
+                                nx + headW + 2.5,
+                                sp.step % 2 === 0 ? y - SPACE / 2 : y,
+                                styles.staffHead
+                              )}
+                            <title>
+                              {n.noteName} · {v.name}
+                            </title>
+                          </g>
+                        );
+                      })}
+                    </g>
+                  );
+                })()}
               {/* row stripes + empty-area interactions */}
               {rows.map((m, i) => (
                 <rect
@@ -672,6 +880,11 @@ export function NoteEditor({
                     className={styles.noteGroup}
                     onPointerDown={(e) => beginDrag(e, i)}
                     onDoubleClick={(e) => e.stopPropagation()}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      splitNote(i, timeAt(e.clientX));
+                    }}
                   >
                     <rect
                       width={w}

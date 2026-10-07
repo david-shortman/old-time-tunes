@@ -21,10 +21,14 @@ What it shows, top to bottom:
   (editable), "downbeat here" to line bar lines up with the selected note or
   playhead, snap on/off with a quarter / eighth / sixteenth grid, "quantize all",
   and zoom
+- a banner when the rhythm was fitted on load: what happened, Undo, and an
+  "as played / fitted" switch. Both versions are kept; edits go to the one you
+  are viewing, and `onNotesChange` reports both so the app can save them
 - the editor (`note-editor.tsx`): one zoomable, scrubbable time axis shared by
   the recording's waveform, the waveform of the notes rendered back to sound in
-  the browser (`renderNotes` in `synth.ts`, Web Audio, no server), a beat ruler,
-  and the note lane
+  the browser (`renderNotes` in `synth.ts`, Web Audio, no server), a treble
+  staff (clef, key signature, stems, flags, accidentals, ledger lines; glyphs
+  from Bravura via `glyphs.ts`, see NOTICE.md), a beat ruler, and the note lane
   - rows are the scale degrees of the key; notes outside the key sit between
     rows with a dashed outline
   - notes are squircles labelled with name and note value (whole, half,
@@ -34,7 +38,10 @@ What it shows, top to bottom:
   - drag a note's left or right edge to change its start or length; with snap on,
     lengths snap to fixed note values
   - double-click an empty spot to add a note; arrow keys nudge the selected note,
-    Delete removes it
+    Delete removes it; right-click (or S) splits a note in two where you click,
+    for a held note that should have been two repeats
+  - snapping is magnetic: a drag pulls to a grid line or a neighbouring note's
+    edge only when close, moves freely otherwise, hold ⇧ to bypass, N toggles
   - drag the ruler to scrub; the view follows the playhead while playing;
     ⌘/ctrl+scroll zooms around the cursor
   - when notes in the visible stretch of time sit above or below the visible
@@ -46,6 +53,10 @@ What it shows, top to bottom:
 - a panel for the selected note: pitch by scale degree, length as a note value,
   start and duration in seconds, delete
 
+Rhythm (`music.ts`): `estimateTempo` fits a beat grid to the onsets alone
+(plucked notes' sounding lengths are ignored), `suggestGridBeats` picks eighths
+or sixteenths from the data, and `normalizeRhythm` snaps onsets and sets each
+width to the gap to the next note, merging attack glitches within 90 ms.
 Key detection (`music.ts`) is tuned for monophonic fiddle tunes: scale
 coverage first, then phrase-ending and long-held notes as tonic evidence, with a
 small prior for common fiddle keys. Tempo comes from the most common

@@ -2,7 +2,20 @@
 import type { OTTNote } from '@ot-tunes/notes';
 import { midiToNoteName } from './fingering';
 
-export const PC_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+export const PC_NAMES = [
+  'C',
+  'C#',
+  'D',
+  'D#',
+  'E',
+  'F',
+  'F#',
+  'G',
+  'G#',
+  'A',
+  'A#',
+  'B',
+];
 
 export type Mode = 'major' | 'minor';
 export type KeyInfo = { tonic: number; mode: Mode; name: string };
@@ -11,10 +24,18 @@ export type Tempo = { bpm: number; offset: number };
 const MAJOR = [0, 2, 4, 5, 7, 9, 11];
 const MINOR = [0, 2, 3, 5, 7, 8, 10];
 // Krumhansl–Schmuckler key profiles
-const KS_MAJOR = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
-const KS_MINOR = [6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+const KS_MAJOR = [
+  6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88,
+];
+const KS_MINOR = [
+  6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17,
+];
 
-export const makeKey = (tonic: number, mode: Mode): KeyInfo => ({ tonic, mode, name: `${PC_NAMES[tonic]} ${mode}` });
+export const makeKey = (tonic: number, mode: Mode): KeyInfo => ({
+  tonic,
+  mode,
+  name: `${PC_NAMES[tonic]} ${mode}`,
+});
 
 export const ALL_KEYS: KeyInfo[] = [
   ...Array.from({ length: 12 }, (_, t) => makeKey(t, 'major')),
@@ -38,8 +59,18 @@ function pearson(a: number[], b: number[]): number {
 
 /** Keys fiddlers actually play in, weighted; everything else gets no bonus. */
 const FIDDLE_KEY_PRIOR: Record<string, number> = {
-  'D major': 0.08, 'A major': 0.07, 'G major': 0.07, 'C major': 0.04, 'E major': 0.02, 'F major': 0.02, 'A# major': 0.02,
-  'A minor': 0.04, 'E minor': 0.04, 'D minor': 0.04, 'B minor': 0.02, 'G minor': 0.02,
+  'D major': 0.08,
+  'A major': 0.07,
+  'G major': 0.07,
+  'C major': 0.04,
+  'E major': 0.02,
+  'F major': 0.02,
+  'A# major': 0.02,
+  'A minor': 0.04,
+  'E minor': 0.04,
+  'D minor': 0.04,
+  'B minor': 0.02,
+  'G minor': 0.02,
 };
 
 /**
@@ -50,7 +81,9 @@ const FIDDLE_KEY_PRIOR: Record<string, number> = {
 export function detectKey(notes: ReadonlyArray<OTTNote>): KeyInfo {
   if (!notes.length) return makeKey(2, 'major'); // D major, the fiddler's default
   const pc = (m: number) => ((m % 12) + 12) % 12;
-  const sorted = [...notes].sort((a, b) => a.startTimeSeconds - b.startTimeSeconds);
+  const sorted = [...notes].sort(
+    (a, b) => a.startTimeSeconds - b.startTimeSeconds
+  );
 
   const hist = new Array<number>(12).fill(0);
   const phraseEnd = new Array<number>(12).fill(0);
@@ -62,7 +95,9 @@ export function detectKey(notes: ReadonlyArray<OTTNote>): KeyInfo {
     const w = n.durationSeconds * (0.5 + n.amplitude);
     hist[pc(n.pitchMidi)] += w;
     const next = sorted[i + 1];
-    const gap = next ? next.startTimeSeconds - (n.startTimeSeconds + n.durationSeconds) : 1;
+    const gap = next
+      ? next.startTimeSeconds - (n.startTimeSeconds + n.durationSeconds)
+      : 1;
     if (gap > 0.2) phraseEnd[pc(n.pitchMidi)] += w;
     if (n.durationSeconds >= longCut) held[pc(n.pitchMidi)] += w;
   }
@@ -73,15 +108,24 @@ export function detectKey(notes: ReadonlyArray<OTTNote>): KeyInfo {
   let best = makeKey(2, 'major');
   let bestScore = -Infinity;
   for (let t = 0; t < 12; t++) {
-    for (const [mode, degrees, profile] of [['major', MAJOR, KS_MAJOR], ['minor', MINOR, KS_MINOR]] as const) {
+    for (const [mode, degrees, profile] of [
+      ['major', MAJOR, KS_MAJOR],
+      ['minor', MINOR, KS_MINOR],
+    ] as const) {
       const key = makeKey(t, mode);
       const scale = degrees.map((d) => (t + d) % 12);
       const coverage = scale.reduce((s, p) => s + hist[p], 0) / total;
-      const tonic = 0.6 * (phraseEnd[t] / peTotal) + 0.4 * (held[t] / heldTotal);
+      const tonic =
+        0.6 * (phraseEnd[t] / peTotal) + 0.4 * (held[t] / heldTotal);
       const fifth = (t + 7) % 12;
       const tonicOrFifth = 0.3 * (phraseEnd[fifth] / peTotal);
       const rotated = hist.map((_, i) => hist[(i + t) % 12]);
-      const score = coverage + 0.3 * tonic + 0.1 * tonicOrFifth + (FIDDLE_KEY_PRIOR[key.name] ?? 0) + 0.05 * pearson(rotated, profile);
+      const score =
+        coverage +
+        0.3 * tonic +
+        0.1 * tonicOrFifth +
+        (FIDDLE_KEY_PRIOR[key.name] ?? 0) +
+        0.05 * pearson(rotated, profile);
       if (score > bestScore) {
         bestScore = score;
         best = key;
@@ -91,9 +135,11 @@ export function detectKey(notes: ReadonlyArray<OTTNote>): KeyInfo {
   return best;
 }
 
-export const scalePitchClasses = (key: KeyInfo): number[] => (key.mode === 'major' ? MAJOR : MINOR).map((d) => (key.tonic + d) % 12);
+export const scalePitchClasses = (key: KeyInfo): number[] =>
+  (key.mode === 'major' ? MAJOR : MINOR).map((d) => (key.tonic + d) % 12);
 
-export const isInScale = (midi: number, key: KeyInfo): boolean => scalePitchClasses(key).includes(((midi % 12) + 12) % 12);
+export const isInScale = (midi: number, key: KeyInfo): boolean =>
+  scalePitchClasses(key).includes(((midi % 12) + 12) % 12);
 
 /** Ascending scale tones within [lo, hi]. */
 export function scaleTones(key: KeyInfo, lo: number, hi: number): number[] {
@@ -115,7 +161,14 @@ export function degreeLabel(midi: number, key: KeyInfo): string {
 // ---------------------------------------------------------------- tempo
 
 /** How "simple" an inter-onset interval of k grid units (eighths) is: 1, 2, 4 beats-ish are cheap. */
-const SIMPLICITY: Record<number, number> = { 1: 1, 2: 1, 3: 0.6, 4: 0.9, 6: 0.5, 8: 0.6 };
+const SIMPLICITY: Record<number, number> = {
+  1: 1,
+  2: 1,
+  3: 0.6,
+  4: 0.9,
+  6: 0.5,
+  8: 0.6,
+};
 const simplicity = (k: number) => SIMPLICITY[k] ?? (k > 8 ? 0.1 : 0.3);
 
 /**
@@ -126,7 +179,9 @@ const simplicity = (k: number) => SIMPLICITY[k] ?? (k > 8 ? 0.1 : 0.3);
  * sounding length says nothing about rhythm: only onsets are used.
  */
 export function estimateTempo(notes: ReadonlyArray<OTTNote>): Tempo {
-  const onsets = [...notes].map((n) => n.startTimeSeconds).sort((a, b) => a - b);
+  const onsets = [...notes]
+    .map((n) => n.startTimeSeconds)
+    .sort((a, b) => a - b);
   const first = onsets[0] ?? 0;
   const iois: number[] = [];
   for (let i = 1; i < onsets.length; i++) {
@@ -177,11 +232,34 @@ export function estimateTempo(notes: ReadonlyArray<OTTNote>): Tempo {
 
   // phase: median residual of onsets against an eighth-note grid anchored on the first onset
   const u = 60 / bpm / 2;
-  const residuals = onsets.map((o) => ((((o - first) % u) + u) % u)).map((r) => (r > u / 2 ? r - u : r)).sort((a, b) => a - b);
+  const residuals = onsets
+    .map((o) => (((o - first) % u) + u) % u)
+    .map((r) => (r > u / 2 ? r - u : r))
+    .sort((a, b) => a - b);
   const phase = residuals[Math.floor(residuals.length / 2)] ?? 0;
   const beat = u * 2;
   const offset = first + phase - Math.floor((first + phase) / beat) * beat;
   return { bpm, offset: Math.max(0, offset) };
+}
+
+/** Suggest the grid: sixteenths when a good share of the intervals are shorter than an eighth. */
+export function suggestGridBeats(
+  notes: ReadonlyArray<OTTNote>,
+  tempo: Tempo
+): 0.5 | 0.25 {
+  const onsets = [...notes]
+    .map((n) => n.startTimeSeconds)
+    .sort((a, b) => a - b);
+  const eighth = 30 / tempo.bpm;
+  let short = 0;
+  let total = 0;
+  for (let i = 1; i < onsets.length; i++) {
+    const d = onsets[i] - onsets[i - 1];
+    if (d < 0.09) continue; // glitches
+    total++;
+    if (d < 0.75 * eighth) short++;
+  }
+  return total > 0 && short / total >= 0.15 ? 0.25 : 0.5;
 }
 
 /**
@@ -189,18 +267,28 @@ export function estimateTempo(notes: ReadonlyArray<OTTNote>): Tempo {
  * to the next onset, in grid units, so a tune of quarter notes shows as even quarter-note blocks.
  * A gap longer than two beats is treated as a rest: the note keeps its own (quantised) length.
  */
-export function normalizeRhythm(notes: ReadonlyArray<OTTNote>, tempo: Tempo, gridBeats: number): OTTNote[] {
+export function normalizeRhythm(
+  notes: ReadonlyArray<OTTNote>,
+  tempo: Tempo,
+  gridBeats: number
+): OTTNote[] {
   const unit = (60 / tempo.bpm) * gridBeats;
   const beat = 60 / tempo.bpm;
-  const sorted = [...notes].sort((a, b) => a.startTimeSeconds - b.startTimeSeconds || a.pitchMidi - b.pitchMidi);
-  const snapStart = (t: number) => Math.max(0, tempo.offset + Math.round((t - tempo.offset) / unit) * unit);
+  const sorted = [...notes].sort(
+    (a, b) =>
+      a.startTimeSeconds - b.startTimeSeconds || a.pitchMidi - b.pitchMidi
+  );
+  const snapStart = (t: number) =>
+    Math.max(0, tempo.offset + Math.round((t - tempo.offset) / unit) * unit);
 
-  // Two onsets closer than half a grid unit are one note with a pitch glitch (a plucked
-  // instrument's attack often reads as a wrong pitch for a few frames): keep the longer one.
+  // Two onsets within a few model frames of each other are one note with a pitch glitch (a
+  // plucked attack often reads as a wrong pitch for ~30–70 ms): keep the longer one. The window
+  // is capped so fast sixteenth-note runs (≈110 ms at 134 BPM) are never merged.
+  const GLITCH_WINDOW = Math.min(unit / 2, 0.09);
   const kept: OTTNote[] = [];
   for (const n of sorted) {
     const prev = kept[kept.length - 1];
-    if (prev && n.startTimeSeconds - prev.startTimeSeconds < unit / 2) {
+    if (prev && n.startTimeSeconds - prev.startTimeSeconds < GLITCH_WINDOW) {
       if (n.durationSeconds > prev.durationSeconds) kept[kept.length - 1] = n;
       continue;
     }
@@ -224,7 +312,11 @@ export function normalizeRhythm(notes: ReadonlyArray<OTTNote>, tempo: Tempo, gri
       const gap = next - start;
       duration = gap <= 2 * beat + 1e-6 ? gap : Math.min(gap, own);
     }
-    return { ...n, startTimeSeconds: start, durationSeconds: Math.max(unit, duration) };
+    return {
+      ...n,
+      startTimeSeconds: start,
+      durationSeconds: Math.max(unit, duration),
+    };
   });
 }
 
@@ -233,7 +325,10 @@ export const beatSeconds = (tempo: Tempo) => 60 / tempo.bpm;
 /** Snap a time to the nearest grid point. `gridBeats` 1 = quarter, 0.5 = eighth, 0.25 = sixteenth. */
 export function snapTime(t: number, tempo: Tempo, gridBeats: number): number {
   const unit = beatSeconds(tempo) * gridBeats;
-  return Math.max(0, tempo.offset + Math.round((t - tempo.offset) / unit) * unit);
+  return Math.max(
+    0,
+    tempo.offset + Math.round((t - tempo.offset) / unit) * unit
+  );
 }
 
 // ----------------------------------------------------------- note values
@@ -251,7 +346,10 @@ export const NOTE_VALUES: NoteValue[] = [
   { beats: 0.25, name: 'sixteenth', short: '¹⁄₁₆' },
 ];
 
-export function nearestNoteValue(durationSeconds: number, tempo: Tempo): NoteValue {
+export function nearestNoteValue(
+  durationSeconds: number,
+  tempo: Tempo
+): NoteValue {
   const beats = durationSeconds / beatSeconds(tempo);
   let best = NOTE_VALUES[NOTE_VALUES.length - 1];
   let bestErr = Infinity;
@@ -263,11 +361,24 @@ export function nearestNoteValue(durationSeconds: number, tempo: Tempo): NoteVal
 }
 
 /** Snap a duration to the nearest fixed note value. */
-export const snapDuration = (durationSeconds: number, tempo: Tempo): number => nearestNoteValue(durationSeconds, tempo).beats * beatSeconds(tempo);
+export const snapDuration = (durationSeconds: number, tempo: Tempo): number =>
+  nearestNoteValue(durationSeconds, tempo).beats * beatSeconds(tempo);
 
 /** Snap every note's start to the grid and its length to a note value. */
-export function quantize(notes: ReadonlyArray<OTTNote>, tempo: Tempo, gridBeats: number): OTTNote[] {
-  return notes.map((n) => ({ ...n, startTimeSeconds: snapTime(n.startTimeSeconds, tempo, gridBeats), durationSeconds: snapDuration(n.durationSeconds, tempo) }));
+export function quantize(
+  notes: ReadonlyArray<OTTNote>,
+  tempo: Tempo,
+  gridBeats: number
+): OTTNote[] {
+  return notes.map((n) => ({
+    ...n,
+    startTimeSeconds: snapTime(n.startTimeSeconds, tempo, gridBeats),
+    durationSeconds: snapDuration(n.durationSeconds, tempo),
+  }));
 }
 
-export const withPitch = (n: OTTNote, pitchMidi: number): OTTNote => ({ ...n, pitchMidi, noteName: midiToNoteName(pitchMidi) });
+export const withPitch = (n: OTTNote, pitchMidi: number): OTTNote => ({
+  ...n,
+  pitchMidi,
+  noteName: midiToNoteName(pitchMidi),
+});

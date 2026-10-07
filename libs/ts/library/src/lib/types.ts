@@ -43,13 +43,18 @@ export type TuneRecord = {
   noteCount: number;
   audio: { fileName: string; mimeType: string; bytes: number };
   transcription: OTTNote[];
+  /** the untouched transcription when `transcription` is a rhythm-fitted or edited version of it */
+  playedTranscription?: OTTNote[];
   grid?: SavedGrid;
   createdAt: string;
   updatedAt: string;
 };
 
 /** What a list view needs; the transcription itself is loaded on demand. */
-export type TuneSummary = Omit<TuneRecord, 'transcription'>;
+export type TuneSummary = Omit<
+  TuneRecord,
+  'transcription' | 'playedTranscription'
+>;
 
 export type NewTune = Omit<
   TuneRecord,

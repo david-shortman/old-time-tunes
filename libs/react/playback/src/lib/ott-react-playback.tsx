@@ -12,6 +12,8 @@ import {
   Maximize2,
   Grid3x3,
   Repeat,
+  Undo2,
+  Music2,
 } from 'lucide-react';
 import { Midi } from '@tonejs/midi';
 import type { OTTNote } from '@ot-tunes/notes';
@@ -26,31 +28,46 @@ import {
   detectKey,
   estimateTempo,
   nearestNoteValue,
+  normalizeRhythm,
   quantize,
+  suggestGridBeats,
   scaleTones,
   withPitch,
   type KeyInfo,
   type Tempo,
-  normalizeRhythm,
 } from './music';
 import styles from './ott-react-playback.module.css';
 
 export type PlaybackMode = 'original' | 'synth' | 'both';
+export type RhythmView = 'played' | 'fitted';
+export type Grid = { bpm: number; offset: number; key: string };
+
+/** Everything a parent needs to persist: the version being viewed, and both versions. */
+export type NotesState = {
+  view: RhythmView;
+  played: OTTNote[];
+  fitted: OTTNote[] | null;
+};
 
 export type OttReactPlaybackProps = {
   title?: string;
   subtitle?: string;
   /** URL (or object URL) of the original recording. Optional: without it, playback is synth only. */
   audioUrl?: string;
+  /** The notes to show. With `autoFit` these are treated as "as played" and a fitted copy is made. */
   notes: ReadonlyArray<OTTNote>;
-  /** Called when the user edits notes. */
-  onNotesChange?: (notes: OTTNote[]) => void;
+  /** The untouched as-played notes when `notes` is already a fitted or edited version. */
+  playedNotes?: ReadonlyArray<OTTNote>;
+  /** Fit the rhythm to the grid on load and show the banner. Default true when `playedNotes` is absent. */
+  autoFit?: boolean;
+  /** Called with the active notes and both versions whenever anything changes. */
+  onNotesChange?: (active: OTTNote[], state: NotesState) => void;
   /** Base name for the downloaded MIDI file. */
   fileName?: string;
   /** Grid saved with the tune; when given it overrides detection so bar lines stay put. */
-  initialGrid?: { bpm: number; offset: number; key: string };
+  initialGrid?: Grid;
   /** Fires when the user changes key, tempo or downbeat. */
-  onGridChange?: (grid: { bpm: number; offset: number; key: string }) => void;
+  onGridChange?: (grid: Grid) => void;
 };
 
 export type LoopRegion = { start: number; end: number };
@@ -72,23 +89,104 @@ const sortNotes = (ns: ReadonlyArray<OTTNote>) =>
   [...ns].sort((a, b) => a.startTimeSeconds - b.startTimeSeconds);
 
 /**
- * Player, timeline and editor for a transcribed recording: the original waveform and the
- * waveform of the notes played back through a synth share one zoomable time axis with the
- * note lane, and the current note's name and fiddle fingering show above.
+ * Player, timeline and editor for a transcribed recording. The recording's waveform, the notes
+ * re-synthesised in the browser, a treble staff and the note lane share one zoomable time axis;
+ * the current note's name and fiddle fingering show above. The rhythm is fitted to a beat grid on
+ * load (undoable, and switchable back to "as played").
  */
 export function OttReactPlayback({
   title,
   subtitle,
   audioUrl,
   notes: notesProp,
+  playedNotes,
+  autoFit,
   onNotesChange,
   fileName = 'notes',
   initialGrid,
   onGridChange,
 }: OttReactPlaybackProps) {
-  const [notes, setNotes] = useState<OTTNote[]>(() => sortNotes(notesProp));
-  useEffect(() => setNotes(sortNotes(notesProp)), [notesProp]);
+  // ---- grid: detected from the as-played notes unless a saved grid is given
+  const playedSource = useMemo(
+    () => sortNotes(playedNotes ?? notesProp),
+    [playedNotes, notesProp]
+  );
+  const autoKey = useMemo(() => detectKey(playedSource), [playedSource]);
+  const autoTempo = useMemo(() => estimateTempo(playedSource), [playedSource]);
+  const gridFromProp = (g?: Grid) => ({
+    key: g ? ALL_KEYS.find((k) => k.name === g.key) ?? null : null,
+    tempo: g ? { bpm: g.bpm, offset: g.offset } : null,
+  });
+  const [keyOverride, setKeyOverride] = useState<KeyInfo | null>(
+    () => gridFromProp(initialGrid).key
+  );
+  const [tempoOverride, setTempoOverride] = useState<Tempo | null>(
+    () => gridFromProp(initialGrid).tempo
+  );
+  const keyInfo = keyOverride ?? autoKey;
+  const tempo = tempoOverride ?? autoTempo;
+  const [snap, setSnap] = useState(true);
+  const [gridBeats, setGridBeats] = useState<number>(() =>
+    suggestGridBeats(playedSource, gridFromProp(initialGrid).tempo ?? autoTempo)
+  );
+  const [pxPerSec, setPxPerSec] = useState(80);
+  const [showStaff, setShowStaff] = useState(true);
 
+  // ---- two versions of the notes: as played, and fitted to the grid
+  const shouldAutoFit = autoFit ?? playedNotes === undefined;
+  const makeInitial = (): NotesState & { merged: number } => {
+    const played = sortNotes(playedNotes ?? notesProp);
+    if (playedNotes !== undefined)
+      return {
+        view: 'fitted',
+        played,
+        fitted: sortNotes(notesProp),
+        merged: 0,
+      };
+    if (!shouldAutoFit || played.length < 2)
+      return { view: 'played', played, fitted: null, merged: 0 };
+    const t = gridFromProp(initialGrid).tempo ?? estimateTempo(played);
+    const fitted = normalizeRhythm(played, t, suggestGridBeats(played, t));
+    return {
+      view: 'fitted',
+      played,
+      fitted,
+      merged: played.length - fitted.length,
+    };
+  };
+  const [state, setState] = useState<NotesState>(() => makeInitial());
+  const [banner, setBanner] = useState<{ merged: number } | null>(() =>
+    shouldAutoFit && playedNotes === undefined
+      ? { merged: makeInitial().merged }
+      : null
+  );
+  useEffect(() => {
+    const g = gridFromProp(initialGrid);
+    setKeyOverride(g.key);
+    setTempoOverride(g.tempo);
+    setGridBeats(suggestGridBeats(playedSource, g.tempo ?? autoTempo));
+    const init = makeInitial();
+    setState(init);
+    setBanner(
+      shouldAutoFit && playedNotes === undefined && init.fitted
+        ? { merged: init.merged }
+        : null
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notesProp, playedNotes]);
+  const notes =
+    state.view === 'fitted' && state.fitted ? state.fitted : state.played;
+
+  const gridReported = useRef('');
+  useEffect(() => {
+    const g = { bpm: tempo.bpm, offset: tempo.offset, key: keyInfo.name };
+    const sig = JSON.stringify(g);
+    if (gridReported.current && gridReported.current !== sig) onGridChange?.(g);
+    gridReported.current = sig;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tempo.bpm, tempo.offset, keyInfo.name]);
+
+  const [loop, setLoop] = useState<LoopRegion | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [rate, setRate] = useState(1);
@@ -100,40 +198,6 @@ export function OttReactPlayback({
     null
   );
   const [synthBuffer, setSynthBuffer] = useState<AudioBuffer | null>(null);
-
-  // grid
-  const autoKey = useMemo(() => detectKey(notesProp), [notesProp]);
-  const autoTempo = useMemo(() => estimateTempo(notesProp), [notesProp]);
-  const gridFromProp = (g?: { bpm: number; offset: number; key: string }) => ({
-    key: g ? ALL_KEYS.find((k) => k.name === g.key) ?? null : null,
-    tempo: g ? { bpm: g.bpm, offset: g.offset } : null,
-  });
-  const [keyOverride, setKeyOverride] = useState<KeyInfo | null>(
-    () => gridFromProp(initialGrid).key
-  );
-  const [tempoOverride, setTempoOverride] = useState<Tempo | null>(
-    () => gridFromProp(initialGrid).tempo
-  );
-  useEffect(() => {
-    const g = gridFromProp(initialGrid);
-    setKeyOverride(g.key);
-    setTempoOverride(g.tempo);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notesProp]);
-  const keyInfo = keyOverride ?? autoKey;
-  const tempo = tempoOverride ?? autoTempo;
-  const gridReported = useRef('');
-  useEffect(() => {
-    const g = { bpm: tempo.bpm, offset: tempo.offset, key: keyInfo.name };
-    const sig = JSON.stringify(g);
-    if (gridReported.current && gridReported.current !== sig) onGridChange?.(g);
-    gridReported.current = sig;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tempo.bpm, tempo.offset, keyInfo.name]);
-  const [loop, setLoop] = useState<LoopRegion | null>(null);
-  const [snap, setSnap] = useState(true);
-  const [gridBeats, setGridBeats] = useState(0.5);
-  const [pxPerSec, setPxPerSec] = useState(80);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const ctxRef = useRef<AudioContext | null>(null);
@@ -173,7 +237,7 @@ export function OttReactPlayback({
     };
   }, [notes, duration, rate]);
 
-  // --- synth graph
+  // ---- synth graph
   const ensureCtx = useCallback(() => {
     if (!ctxRef.current) {
       const ctx = new AudioContext();
@@ -223,7 +287,7 @@ export function OttReactPlayback({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rate, synthBuffer]);
 
-  // --- transport
+  // ---- transport
   const play = useCallback(() => {
     if (audioRef.current) void audioRef.current.play();
     startSynth(audioRef.current ? audioRef.current.currentTime : currentTime);
@@ -276,12 +340,13 @@ export function OttReactPlayback({
   useEffect(
     () => () => {
       stopSynth();
-      void ctxRef.current?.close();
+      if (ctxRef.current && ctxRef.current.state !== 'closed')
+        void ctxRef.current.close();
     },
     [stopSynth]
   );
 
-  // --- derived
+  // ---- derived
   const activeIndex = useMemo(
     () =>
       notes.findIndex(
@@ -306,11 +371,50 @@ export function OttReactPlayback({
     if (target) seek(target.startTimeSeconds);
   };
 
-  const updateNotes = (next: OTTNote[], focus?: OTTNote) => {
-    const sorted = sortNotes(next);
-    setNotes(sorted);
-    if (focus) setSelected(sorted.indexOf(focus));
-    onNotesChange?.(sorted);
+  // ---- editing: writes go to the version being viewed
+  const commit = (next: NotesState, focus?: OTTNote) => {
+    setState(next);
+    const active =
+      next.view === 'fitted' && next.fitted ? next.fitted : next.played;
+    if (focus) setSelected(active.indexOf(focus));
+    onNotesChange?.(active, next);
+  };
+  const updateNotes = (nextNotes: OTTNote[], focus?: OTTNote) => {
+    const sorted = sortNotes(nextNotes);
+    commit(
+      state.view === 'fitted' && state.fitted
+        ? { ...state, fitted: sorted }
+        : { ...state, played: sorted },
+      focus
+    );
+  };
+  const setView = (view: RhythmView) => {
+    if (view === 'fitted' && !state.fitted) {
+      commit({
+        view,
+        played: state.played,
+        fitted: normalizeRhythm(state.played, tempo, gridBeats),
+      });
+    } else commit({ ...state, view });
+    setSelected(-1);
+  };
+  const undoFit = () => {
+    commit({ view: 'played', played: state.played, fitted: null });
+    setBanner(null);
+    setSelected(-1);
+  };
+  const refit = () => {
+    if (
+      state.fitted &&
+      !window.confirm(
+        'Re-fit the rhythm from the as-played notes? Edits made to the fitted version will be replaced.'
+      )
+    )
+      return;
+    const fitted = normalizeRhythm(state.played, tempo, gridBeats);
+    commit({ view: 'fitted', played: state.played, fitted });
+    setBanner({ merged: state.played.length - fitted.length });
+    setSelected(-1);
   };
 
   const patchSelected = (patch: Partial<OTTNote>) => {
@@ -411,6 +515,7 @@ export function OttReactPlayback({
       Math.max(10, Math.min(16000 / Math.max(1, duration), p * f))
     );
   const fit = () => setPxPerSec(Math.max(10, 880 / Math.max(1, duration)));
+  const gridLabel = GRIDS.find((g) => g.beats === gridBeats)?.label ?? '⅛';
 
   return (
     <div className={styles.root}>
@@ -444,8 +549,57 @@ export function OttReactPlayback({
         <Fingerboard fingering={fingering} />
       </div>
 
+      {banner && state.fitted && (
+        <div className={styles.banner} role="status">
+          <span>
+            <strong>Rhythm fitted to the grid</strong> at {tempo.bpm} BPM:
+            onsets snapped to {gridLabel} notes and each note stretched to the
+            next one, so widths are regular.
+            {banner.merged > 0
+              ? ` ${banner.merged} attack glitch${
+                  banner.merged === 1 ? '' : 'es'
+                } merged.`
+              : ''}{' '}
+            If it reads as eighths when you hear quarters, press ×2. Compare
+            with the as-played version using the switch.
+          </span>
+          <span className={styles.bannerActions}>
+            <button className={styles.btnSmall} onClick={undoFit}>
+              <Undo2 size={14} /> Undo
+            </button>
+            <button className={styles.link} onClick={() => setBanner(null)}>
+              dismiss
+            </button>
+          </span>
+        </div>
+      )}
+
       {/* grid toolbar */}
       <div className={styles.toolbar}>
+        <span
+          className={styles.group}
+          role="group"
+          aria-label="which version of the notes to show"
+        >
+          <button
+            className={`${styles.chip} ${
+              state.view === 'played' ? styles.chipOn : ''
+            }`}
+            onClick={() => setView('played')}
+            title="The transcription as the model heard it"
+          >
+            as played
+          </button>
+          <button
+            className={`${styles.chip} ${
+              state.view === 'fitted' ? styles.chipOn : ''
+            }`}
+            onClick={() => setView('fitted')}
+            title="Onsets and widths fitted to the beat grid"
+          >
+            fitted
+          </button>
+        </span>
         <label className={styles.tool}>
           key
           <select
@@ -535,7 +689,7 @@ export function OttReactPlayback({
           <button
             className={`${styles.chip} ${snap ? styles.chipOn : ''}`}
             onClick={() => setSnap((s) => !s)}
-            title="Snap starts to the grid and lengths to note values"
+            title="Magnetic snapping to the grid and neighbouring notes (hold ⇧ to bypass, N toggles)"
           >
             <Grid3x3 size={14} /> snap
           </button>
@@ -553,7 +707,7 @@ export function OttReactPlayback({
         </span>
         <button
           className={styles.btnSmall}
-          onClick={() => updateNotes(normalizeRhythm(notes, tempo, gridBeats))}
+          onClick={refit}
           title="Snap every onset to the grid and give each note the width up to the next one: regular blocks for plucked or percussive playing"
         >
           fit rhythm to grid
@@ -566,6 +720,13 @@ export function OttReactPlayback({
           quantize lengths
         </button>
         <span className={styles.group}>
+          <button
+            className={`${styles.chip} ${showStaff ? styles.chipOn : ''}`}
+            onClick={() => setShowStaff((v) => !v)}
+            title="Show the notes on a treble staff"
+          >
+            <Music2 size={14} /> staff
+          </button>
           <button
             className={styles.chip}
             onClick={() => zoom(1 / 1.3)}
@@ -601,6 +762,7 @@ export function OttReactPlayback({
           follow={isPlaying}
           lanes={lanes}
           loop={loop}
+          showStaff={showStaff}
           onToggleSnap={() => setSnap((v) => !v)}
           onSelect={setSelected}
           onSeek={seek}
@@ -615,8 +777,9 @@ export function OttReactPlayback({
           <span>{fmt(currentTime)}</span>
           <span className={styles.hintInline}>
             drag a note to move it · drag its edge to change its length ·
-            snapping is magnetic: hold ⇧ to drag freely, N toggles it · ⌥ for
-            notes outside the key · double-click to add · ⌘/ctrl+scroll to zoom
+            right-click (or S) to split a held note in two · snapping is
+            magnetic: hold ⇧ to drag freely, N toggles it · ⌥ for notes outside
+            the key · double-click to add · ⌘/ctrl+scroll to zoom
           </span>
           <span>{fmt(duration)}</span>
         </div>
@@ -803,7 +966,8 @@ export function OttReactPlayback({
         ) : (
           <p className={styles.hint}>
             Click a note to select it. Arrow keys move it by scale degree or
-            grid step, Delete removes it. Download the result as MIDI.
+            grid step, S splits it, Delete removes it. Download the result as
+            MIDI.
           </p>
         )}
       </div>

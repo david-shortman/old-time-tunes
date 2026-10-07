@@ -4,7 +4,10 @@ import type { OTTNote } from '@ot-tunes/notes';
 const SAMPLE_RATE = 22050;
 
 export function notesEnd(notes: ReadonlyArray<OTTNote>): number {
-  return notes.reduce((m, n) => Math.max(m, n.startTimeSeconds + n.durationSeconds), 0);
+  return notes.reduce(
+    (m, n) => Math.max(m, n.startTimeSeconds + n.durationSeconds),
+    0
+  );
 }
 
 /**
@@ -16,7 +19,10 @@ export async function renderNotes(
   durationSeconds: number,
   rate = 1
 ): Promise<AudioBuffer> {
-  const length = Math.max(1, Math.ceil(((durationSeconds + 0.5) / rate) * SAMPLE_RATE));
+  const length = Math.max(
+    1,
+    Math.ceil(((durationSeconds + 0.5) / rate) * SAMPLE_RATE)
+  );
   const ctx = new OfflineAudioContext(1, length, SAMPLE_RATE);
   const master = ctx.createGain();
   master.gain.value = 0.9;
@@ -30,7 +36,9 @@ export async function renderNotes(
     osc.frequency.value = 440 * Math.pow(2, (n.pitchMidi - 69) / 12);
     if (n.pitchBends && n.pitchBends.length > 1) {
       // bends are in semitones relative to the note; detune is in cents
-      const cents = Float32Array.from(n.pitchBends, (b) => Math.max(-200, Math.min(200, b * 100)));
+      const cents = Float32Array.from(n.pitchBends, (b) =>
+        Math.max(-200, Math.min(200, b * 100))
+      );
       osc.detune.setValueCurveAtTime(cents, start, dur);
     }
     const filter = ctx.createBiquadFilter();
@@ -67,7 +75,11 @@ export async function decodeAudioUrl(url: string): Promise<AudioBuffer> {
 }
 
 /** Max-abs amplitude per bin across `bins` equal time slices covering `durationSeconds`. */
-export function waveformPeaks(buffer: AudioBuffer, bins: number, durationSeconds: number): Float32Array {
+export function waveformPeaks(
+  buffer: AudioBuffer,
+  bins: number,
+  durationSeconds: number
+): Float32Array {
   const peaks = new Float32Array(bins);
   const samplesPerBin = (durationSeconds * buffer.sampleRate) / bins;
   for (let ch = 0; ch < buffer.numberOfChannels; ch++) {

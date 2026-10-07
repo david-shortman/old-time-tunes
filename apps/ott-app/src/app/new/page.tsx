@@ -7,6 +7,7 @@ import {
   detectKey,
   estimateTempo,
   ALL_KEYS,
+  type NotesState,
 } from '@old-time-tunes/ott-react-playback';
 import { getRepository } from '../lib/repository';
 import {
@@ -58,6 +59,7 @@ export default function NewRecording() {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [details, setDetails] = useState<TuneDetails>(emptyDetails());
   const [edited, setEdited] = useState<OTTNote[] | null>(null);
+  const [notesState, setNotesState] = useState<NotesState | null>(null);
   const [grid, setGrid] = useState<{
     bpm: number;
     offset: number;
@@ -68,6 +70,7 @@ export default function NewRecording() {
   const openResult = (l: Loaded) => {
     setLoaded(l);
     setEdited(null);
+    setNotesState(null);
     const key = detectKey(l.notes);
     const tempo = estimateTempo(l.notes);
     setGrid({ bpm: tempo.bpm, offset: tempo.offset, key: key.name });
@@ -103,6 +106,10 @@ export default function NewRecording() {
         notes: details.notes.trim() || undefined,
         durationSeconds: duration,
         transcription: notes,
+        playedTranscription:
+          notesState && notesState.view === 'fitted' && notesState.fitted
+            ? notesState.played
+            : undefined,
         grid: grid ?? undefined,
         audio: loaded.audio,
         fileName: loaded.fileName,
@@ -334,7 +341,10 @@ export default function NewRecording() {
             audioUrl={loaded.audioUrl}
             notes={loaded.notes}
             fileName={loaded.fileName.replace(/\.[^.]+$/, '')}
-            onNotesChange={setEdited}
+            onNotesChange={(active, st) => {
+              setEdited(active);
+              setNotesState(st);
+            }}
             onGridChange={setGrid}
           />
           <section className={styles.panel}>
