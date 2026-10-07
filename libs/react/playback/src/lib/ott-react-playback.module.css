@@ -71,15 +71,17 @@
 .stepper input { width: 64px; }
 
 /* ---- editor grid */
-.editorGrid { display: grid; grid-template-columns: 76px 1fr; max-height: 560px; overflow-y: auto; border-radius: 6px; background: rgba(0,0,0,0.03); }
-.gutter { display: flex; flex-direction: column; font-size: 0.72rem; color: var(--muted); border-right: 1px solid rgba(0,0,0,0.08); background: var(--panel); position: sticky; left: 0; z-index: 1; }
+.editorGrid { display: grid; max-height: 560px; overflow: auto; border-radius: 6px; background: rgba(0,0,0,0.03); outline: none; }
+.editorGrid:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.frozenCorner { position: sticky; top: 0; left: 0; z-index: 4; }
+.frozenTop { position: sticky; top: 0; z-index: 3; background: var(--panel); border-bottom: 1px solid rgba(0,0,0,0.1); }
+.frozenLeft { position: sticky; left: 0; z-index: 2; }
+.gutter { display: flex; flex-direction: column; font-size: 0.72rem; color: var(--muted); border-right: 1px solid rgba(0,0,0,0.08); background: var(--panel); }
 .gutterLane { display: flex; align-items: center; padding-left: 8px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid rgba(0,0,0,0.05); }
 .gutterRuler { display: flex; align-items: center; padding-left: 8px; font-weight: 600; color: var(--ink); border-bottom: 1px solid rgba(0,0,0,0.08); }
 .gutterRow { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border-bottom: 1px solid rgba(0,0,0,0.04); color: var(--ink); }
 .gutterRowTonic { background: rgba(47,111,159,0.10); font-weight: 600; }
 .gutterDegree { color: var(--muted); font-variant-numeric: tabular-nums; }
-.scroller { overflow-x: auto; overflow-y: hidden; outline: none; }
-.scroller:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
 .gridBar { stroke: rgba(0,0,0,0.28); stroke-width: 1.2; }
 .gridBeat { stroke: rgba(0,0,0,0.14); stroke-width: 1; }
 .gridSub { stroke: rgba(0,0,0,0.06); stroke-width: 1; }

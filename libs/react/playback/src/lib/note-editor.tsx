@@ -58,8 +58,9 @@ type Props = {
 
 export const ROW_H = 24;
 const RULER_H = 26;
-const LANE_H = 64;
-const STAFF_H = 118;
+const GUTTER_W = 76;
+const LANE_H = 28;
+const STAFF_H = 112;
 const SPACE = 10; // px per staff space
 const HANDLE = 7;
 const MIN_DUR = 0.03;
@@ -112,8 +113,8 @@ export function NoteEditor({
   onChange,
   onZoom,
 }: Props) {
-  const scrollRef = useRef<HTMLDivElement>(null); // horizontal (time)
-  const vScrollRef = useRef<HTMLDivElement>(null); // vertical (rows)
+  const scrollRef = useRef<HTMLDivElement>(null); // the one scroll container (both axes)
+  const rowsSvgRef = useRef<SVGSVGElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ top: 0, height: 0, left: 0, width: 0 });
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -148,16 +149,16 @@ export function NoteEditor({
   const lanesH = lanes.length * LANE_H;
   const staffH = showStaff ? STAFF_H : 0;
   const rulerTop = lanesH + staffH;
-  const notesTop = rulerTop + RULER_H;
-  const height = notesTop + rows.length * ROW_H;
+  const topH = rulerTop + RULER_H; // frozen header: lanes + staff + ruler
+  const rowsH = rows.length * ROW_H;
+  const height = topH + rowsH;
   const x = (t: number) => t * pxPerSec;
-  const yTop = (midi: number) =>
-    notesTop + (rows.length - 1 - rowPos(midi)) * ROW_H;
+  /** y of a note's row inside the rows svg */
+  const yTop = (midi: number) => (rows.length - 1 - rowPos(midi)) * ROW_H;
   const timeAt = (clientX: number) => {
-    const el = scrollRef.current;
-    if (!el) return 0;
-    const rect = el.getBoundingClientRect();
-    return Math.max(0, (clientX - rect.left + el.scrollLeft) / pxPerSec);
+    const svg = rowsSvgRef.current;
+    if (!svg) return 0;
+    return Math.max(0, (clientX - svg.getBoundingClientRect().left) / pxPerSec);
   };
   const nearestPitch = (pos: number, chromatic: boolean) => {
     const lo = rows[0] - 1;
@@ -172,28 +173,26 @@ export function NoteEditor({
     return best;
   };
   const midiAtY = (clientY: number, chromatic: boolean) => {
-    const el = scrollRef.current;
-    if (!el) return rows[0];
-    const rect = el.getBoundingClientRect();
+    const svg = rowsSvgRef.current;
+    if (!svg) return rows[0];
     const pos =
       rows.length -
       1 -
-      (clientY - rect.top + el.scrollTop - notesTop) / ROW_H +
+      (clientY - svg.getBoundingClientRect().top) / ROW_H +
       0.5;
     return nearestPitch(pos, chromatic);
   };
 
   // ---- what part of the grid is on screen
   const measure = useCallback(() => {
-    const v = vScrollRef.current;
-    const h = scrollRef.current;
-    if (!v || !h) return;
+    const el = scrollRef.current;
+    if (!el) return;
     setView((prev) => {
       const next = {
-        top: v.scrollTop,
-        height: v.clientHeight,
-        left: h.scrollLeft,
-        width: h.clientWidth,
+        top: el.scrollTop,
+        height: el.clientHeight,
+        left: el.scrollLeft,
+        width: el.clientWidth,
       };
       return prev.top === next.top &&
         prev.height === next.height &&
@@ -205,7 +204,7 @@ export function NoteEditor({
   }, []);
   useEffect(() => {
     measure();
-    const v = vScrollRef.current;
+    const v = scrollRef.current;
     if (!v) return;
     const ro = new ResizeObserver(measure);
     ro.observe(v);
@@ -238,7 +237,7 @@ export function NoteEditor({
     const el = scrollRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const xIn = e.clientX - rect.left;
+    const xIn = e.clientX - rect.left - GUTTER_W;
     zoomAnchor.current = { t: (xIn + el.scrollLeft) / pxPerSec, x: xIn };
     onZoom(pxPerSec * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
   };
@@ -666,8 +665,8 @@ export function NoteEditor({
         n.startTimeSeconds > t1
       )
         continue;
-      const y = yTop(n.pitchMidi);
-      if (y < view.top) above.push(n);
+      const y = topH + yTop(n.pitchMidi); // in scroll-content coordinates
+      if (y < view.top + topH) above.push(n);
       else if (y + ROW_H > view.top + view.height) below.push(n);
     }
   }
@@ -681,15 +680,15 @@ export function NoteEditor({
   };
   const revealAbove = () => {
     const y = Math.min(...above.map((n) => yTop(n.pitchMidi)));
-    vScrollRef.current?.scrollTo({
+    scrollRef.current?.scrollTo({
       top: Math.max(0, y - ROW_H),
       behavior: 'smooth',
     });
   };
   const revealBelow = () => {
     const y = Math.max(...below.map((n) => yTop(n.pitchMidi)));
-    vScrollRef.current?.scrollTo({
-      top: y + ROW_H * 2 - view.height,
+    scrollRef.current?.scrollTo({
+      top: topH + y + ROW_H * 2 - view.height,
       behavior: 'smooth',
     });
   };
@@ -850,12 +849,33 @@ export function NoteEditor({
   };
 
   const mergeable = canMerge(notes, selected);
+  const pointerHandlers = {
+    onPointerMove: (e: React.PointerEvent) => {
+      moveDrag(e);
+      moveScrub(e);
+    },
+    onPointerUp: () => {
+      endDrag();
+      endScrub();
+    },
+    onPointerCancel: () => {
+      endDrag();
+      endScrub();
+    },
+  };
+  const gridLineClass = (kind: 'bar' | 'beat' | 'sub') =>
+    kind === 'bar'
+      ? styles.gridBar
+      : kind === 'beat'
+      ? styles.gridBeat
+      : styles.gridSub;
 
   return (
     <div className={styles.editorWrap} ref={wrapRef}>
       {above.length > 0 && (
         <button
           className={`${styles.edgeBanner} ${styles.edgeBannerTop}`}
+          style={{ top: topH + 6 }}
           onClick={revealAbove}
         >
           ▲ {summarize(above)} above
@@ -943,13 +963,21 @@ export function NoteEditor({
         </div>
       )}
 
+      {/* One scroll container for both axes; the header row and the label column are sticky. */}
       <div
-        ref={vScrollRef}
+        ref={scrollRef}
         className={styles.editorGrid}
-        style={{ height }}
+        style={{
+          gridTemplateColumns: `${GUTTER_W}px ${width}px`,
+          gridTemplateRows: `${topH}px ${rowsH}px`,
+        }}
         onScroll={measure}
+        onWheel={onWheel}
+        tabIndex={0}
+        onKeyDown={onKeyDown}
       >
-        <div className={styles.gutter}>
+        {/* corner: labels for the frozen header */}
+        <div className={`${styles.gutter} ${styles.frozenCorner}`}>
           {lanes.map((l) => (
             <div
               key={l.label}
@@ -967,6 +995,104 @@ export function NoteEditor({
           <div className={styles.gutterRuler} style={{ height: RULER_H }}>
             {keyInfo.name}
           </div>
+        </div>
+
+        {/* frozen header: waveforms, staff, ruler */}
+        <div className={styles.frozenTop} style={{ width, height: topH }}>
+          {lanes.map((l, i) => (
+            <div
+              key={l.label}
+              style={{ position: 'absolute', top: i * LANE_H, left: 0 }}
+            >
+              <Waveform
+                buffer={l.buffer}
+                duration={duration}
+                width={width}
+                height={LANE_H}
+                color={l.color}
+                bufferRate={l.bufferRate}
+              />
+            </div>
+          ))}
+          <svg
+            width={width}
+            height={topH}
+            style={{ position: 'absolute', top: 0, left: 0, display: 'block' }}
+            {...pointerHandlers}
+          >
+            {gridLines.map((g, i) => (
+              <line
+                key={i}
+                x1={x(g.t)}
+                x2={x(g.t)}
+                y1={rulerTop}
+                y2={topH}
+                className={gridLineClass(g.kind)}
+              />
+            ))}
+            <rect
+              x={0}
+              y={rulerTop}
+              width={width}
+              height={RULER_H}
+              className={styles.ruler}
+              onPointerDown={beginScrub}
+            />
+            {Array.from(
+              { length: Math.floor(duration / labelEvery) + 1 },
+              (_, i) => i * labelEvery
+            ).map((t) => (
+              <text
+                key={t}
+                x={x(t) + 3}
+                y={rulerTop + 16}
+                className={styles.rulerText}
+                pointerEvents="none"
+              >
+                {Math.floor(t / 60)}:{String(t % 60).padStart(2, '0')}
+              </text>
+            ))}
+            {showStaff && renderStaff()}
+            {loop && (
+              <rect
+                x={x(loop.start)}
+                y={0}
+                width={Math.max(1, x(loop.end) - x(loop.start))}
+                height={topH}
+                className={styles.loopRegion}
+                pointerEvents="none"
+              />
+            )}
+            {drag?.guide !== null && drag?.guide !== undefined && (
+              <line
+                x1={x(drag.guide)}
+                x2={x(drag.guide)}
+                y1={rulerTop}
+                y2={topH}
+                className={styles.snapGuide}
+                pointerEvents="none"
+              />
+            )}
+            <line
+              x1={playheadX}
+              x2={playheadX}
+              y1={0}
+              y2={topH}
+              className={styles.playhead}
+              pointerEvents="none"
+            />
+            <polygon
+              points={`${playheadX - 6},${rulerTop} ${
+                playheadX + 6
+              },${rulerTop} ${playheadX},${rulerTop + 8}`}
+              className={styles.playheadCap}
+              pointerEvents="none"
+            />
+          </svg>
+        </div>
+
+        {/* frozen left column: row labels */}
+        <div className={`${styles.gutter} ${styles.frozenLeft}`}>
           {[...rows].reverse().map((m) => (
             <div
               key={m}
@@ -983,221 +1109,141 @@ export function NoteEditor({
           ))}
         </div>
 
-        <div
-          ref={scrollRef}
-          className={styles.scroller}
-          onWheel={onWheel}
-          onScroll={measure}
-          tabIndex={0}
-          onKeyDown={onKeyDown}
+        {/* scrolling body: the note rows */}
+        <svg
+          ref={rowsSvgRef}
+          width={width}
+          height={rowsH}
+          style={{ display: 'block' }}
+          {...pointerHandlers}
         >
-          <div style={{ position: 'relative', width, height }}>
-            {lanes.map((l, i) => (
-              <div
-                key={l.label}
-                style={{ position: 'absolute', top: i * LANE_H, left: 0 }}
-              >
-                <Waveform
-                  buffer={l.buffer}
-                  duration={duration}
-                  width={width}
-                  height={LANE_H}
-                  color={l.color}
-                  bufferRate={l.bufferRate}
-                />
-              </div>
-            ))}
-            <svg
+          {gridLines.map((g, i) => (
+            <line
+              key={i}
+              x1={x(g.t)}
+              x2={x(g.t)}
+              y1={0}
+              y2={rowsH}
+              className={gridLineClass(g.kind)}
+            />
+          ))}
+          {rows.map((m, i) => (
+            <rect
+              key={m}
+              x={0}
+              y={(rows.length - 1 - i) * ROW_H}
               width={width}
-              height={height}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                display: 'block',
+              height={ROW_H}
+              className={
+                m % 12 === keyInfo.tonic
+                  ? styles.rowTonic
+                  : i % 2
+                  ? styles.rowOdd
+                  : styles.rowEven
+              }
+              onPointerDown={(e) => {
+                if (e.button === 2) return;
+                if (!e.shiftKey && !e.metaKey && !e.ctrlKey) onSelect([]);
+                beginScrub(e);
               }}
-              onPointerMove={(e) => {
-                moveDrag(e);
-                moveScrub(e);
-              }}
-              onPointerUp={() => {
-                endDrag();
-                endScrub();
-              }}
-              onPointerCancel={() => {
-                endDrag();
-                endScrub();
-              }}
-            >
-              {gridLines.map((g, i) => (
-                <line
-                  key={i}
-                  x1={x(g.t)}
-                  x2={x(g.t)}
-                  y1={rulerTop}
-                  y2={height}
-                  className={
-                    g.kind === 'bar'
-                      ? styles.gridBar
-                      : g.kind === 'beat'
-                      ? styles.gridBeat
-                      : styles.gridSub
-                  }
-                />
-              ))}
-              <rect
-                x={0}
-                y={rulerTop}
-                width={width}
-                height={RULER_H}
-                className={styles.ruler}
-                onPointerDown={beginScrub}
-              />
-              {Array.from(
-                { length: Math.floor(duration / labelEvery) + 1 },
-                (_, i) => i * labelEvery
-              ).map((t) => (
-                <text
-                  key={t}
-                  x={x(t) + 3}
-                  y={rulerTop + 16}
-                  className={styles.rulerText}
-                  pointerEvents="none"
-                >
-                  {Math.floor(t / 60)}:{String(t % 60).padStart(2, '0')}
-                </text>
-              ))}
-              {showStaff && renderStaff()}
-              {rows.map((m, i) => (
+              onDoubleClick={(e) => addNoteAt(e.clientX, e.clientY, e.altKey)}
+              onContextMenu={(e) => openMenu(e, null)}
+            />
+          ))}
+          {shown.map((n, i) => {
+            const w = Math.max(6, x(n.durationSeconds));
+            const h = ROW_H - 4;
+            const chromatic = !isInScale(n.pitchMidi, keyInfo);
+            const cls = [
+              styles.note,
+              i === active ? styles.noteActive : '',
+              isSel(i) ? styles.noteSelected : '',
+              chromatic ? styles.noteChromatic : '',
+            ].join(' ');
+            return (
+              <g
+                key={i}
+                transform={`translate(${x(n.startTimeSeconds)}, ${
+                  yTop(n.pitchMidi) + 2
+                })`}
+                className={styles.noteGroup}
+                onPointerDown={(e) => beginDrag(e, i)}
+                onDoubleClick={(e) => e.stopPropagation()}
+                onContextMenu={(e) => openMenu(e, i)}
+              >
                 <rect
-                  key={m}
-                  x={0}
-                  y={notesTop + (rows.length - 1 - i) * ROW_H}
-                  width={width}
-                  height={ROW_H}
-                  className={
-                    m % 12 === keyInfo.tonic
-                      ? styles.rowTonic
-                      : i % 2
-                      ? styles.rowOdd
-                      : styles.rowEven
-                  }
-                  onPointerDown={(e) => {
-                    if (e.button === 2) return;
-                    if (!e.shiftKey && !e.metaKey && !e.ctrlKey) onSelect([]);
-                    beginScrub(e);
-                  }}
-                  onDoubleClick={(e) =>
-                    addNoteAt(e.clientX, e.clientY, e.altKey)
-                  }
-                  onContextMenu={(e) => openMenu(e, null)}
+                  width={w}
+                  height={h}
+                  rx={h / 2.2}
+                  className={cls}
+                  opacity={0.55 + 0.45 * Math.min(1, n.amplitude)}
                 />
-              ))}
-              {shown.map((n, i) => {
-                const w = Math.max(6, x(n.durationSeconds));
-                const h = ROW_H - 4;
-                const chromatic = !isInScale(n.pitchMidi, keyInfo);
-                const cls = [
-                  styles.note,
-                  i === active ? styles.noteActive : '',
-                  isSel(i) ? styles.noteSelected : '',
-                  chromatic ? styles.noteChromatic : '',
-                ].join(' ');
-                return (
-                  <g
-                    key={i}
-                    transform={`translate(${x(n.startTimeSeconds)}, ${
-                      yTop(n.pitchMidi) + 2
-                    })`}
-                    className={styles.noteGroup}
-                    onPointerDown={(e) => beginDrag(e, i)}
-                    onDoubleClick={(e) => e.stopPropagation()}
-                    onContextMenu={(e) => openMenu(e, i)}
-                  >
+                {w > HANDLE * 3 && (
+                  <>
                     <rect
-                      width={w}
+                      x={0}
+                      width={HANDLE}
                       height={h}
-                      rx={h / 2.2}
-                      className={cls}
-                      opacity={0.55 + 0.45 * Math.min(1, n.amplitude)}
+                      className={styles.handle}
                     />
-                    {w > HANDLE * 3 && (
-                      <>
-                        <rect
-                          x={0}
-                          width={HANDLE}
-                          height={h}
-                          className={styles.handle}
-                        />
-                        <rect
-                          x={w - HANDLE}
-                          width={HANDLE}
-                          height={h}
-                          className={styles.handle}
-                        />
-                      </>
-                    )}
-                    {w > 34 && (
-                      <text
-                        x={w / 2}
-                        y={h / 2 + 4}
-                        className={styles.noteText}
-                        pointerEvents="none"
-                      >
-                        {n.noteName}
-                        {w > 64
-                          ? ` · ${
-                              nearestNoteValue(n.durationSeconds, tempo).short
-                            }`
-                          : ''}
-                      </text>
-                    )}
-                    <title>
-                      {n.noteName} ·{' '}
-                      {nearestNoteValue(n.durationSeconds, tempo).name} ·{' '}
-                      {n.startTimeSeconds.toFixed(2)}s
-                    </title>
-                  </g>
-                );
-              })}
-              {loop && (
-                <rect
-                  x={x(loop.start)}
-                  y={0}
-                  width={Math.max(1, x(loop.end) - x(loop.start))}
-                  height={height}
-                  className={styles.loopRegion}
-                  pointerEvents="none"
-                />
-              )}
-              {drag?.guide !== null && drag?.guide !== undefined && (
-                <line
-                  x1={x(drag.guide)}
-                  x2={x(drag.guide)}
-                  y1={rulerTop}
-                  y2={height}
-                  className={styles.snapGuide}
-                  pointerEvents="none"
-                />
-              )}
-              <line
-                x1={playheadX}
-                x2={playheadX}
-                y1={0}
-                y2={height}
-                className={styles.playhead}
-                pointerEvents="none"
-              />
-              <polygon
-                points={`${playheadX - 6},${rulerTop} ${
-                  playheadX + 6
-                },${rulerTop} ${playheadX},${rulerTop + 8}`}
-                className={styles.playheadCap}
-                pointerEvents="none"
-              />
-            </svg>
-          </div>
-        </div>
+                    <rect
+                      x={w - HANDLE}
+                      width={HANDLE}
+                      height={h}
+                      className={styles.handle}
+                    />
+                  </>
+                )}
+                {w > 34 && (
+                  <text
+                    x={w / 2}
+                    y={h / 2 + 4}
+                    className={styles.noteText}
+                    pointerEvents="none"
+                  >
+                    {n.noteName}
+                    {w > 64
+                      ? ` · ${nearestNoteValue(n.durationSeconds, tempo).short}`
+                      : ''}
+                  </text>
+                )}
+                <title>
+                  {n.noteName} ·{' '}
+                  {nearestNoteValue(n.durationSeconds, tempo).name} ·{' '}
+                  {n.startTimeSeconds.toFixed(2)}s
+                </title>
+              </g>
+            );
+          })}
+          {loop && (
+            <rect
+              x={x(loop.start)}
+              y={0}
+              width={Math.max(1, x(loop.end) - x(loop.start))}
+              height={rowsH}
+              className={styles.loopRegion}
+              pointerEvents="none"
+            />
+          )}
+          {drag?.guide !== null && drag?.guide !== undefined && (
+            <line
+              x1={x(drag.guide)}
+              x2={x(drag.guide)}
+              y1={0}
+              y2={rowsH}
+              className={styles.snapGuide}
+              pointerEvents="none"
+            />
+          )}
+          <line
+            x1={playheadX}
+            x2={playheadX}
+            y1={0}
+            y2={rowsH}
+            className={styles.playhead}
+            pointerEvents="none"
+          />
+        </svg>
       </div>
     </div>
   );
