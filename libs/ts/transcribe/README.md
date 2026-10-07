@@ -22,8 +22,14 @@ const { notes, timing } = await transcribeAudio(
 - Note tracking reuses `outputToNotesPoly`, `addPitchBendsToNoteEvents` and
   `noteFramesToTime` from `@spotify/basic-pitch` (its `toMidi` module has no
   TensorFlow dependency). The monophonic rule is a port of `ott_bp_api/postprocess.py`.
-- The host app must serve `nmp.onnx` and onnxruntime-web's `.wasm` file; see the
-  `copy-assets` target in `apps/ott-app/project.json`.
+- The host app must serve `nmp.onnx` and onnxruntime-web's loader `.mjs` and `.wasm`
+  files; see the `copy-assets` target in `apps/ott-app/project.json`.
+- Nothing is fetched until asked. `downloadAssets(urls, onProgress)` fetches the model
+  and the runtime with byte-level progress, stores them in Cache Storage
+  (`ott-transcribe-v1`) and returns bytes to pass as `ModelOptions.assets`;
+  `areAssetsCached` / `cachedBytes` answer "is it already on this device" without
+  touching the network, and `removeAssets` clears it. The Next app wraps these in
+  `useTranscriberAssets` and a status panel with a download button and progress bar.
 
 ## Measured (2026-10-07, M-series Mac, Chrome, single WASM thread)
 

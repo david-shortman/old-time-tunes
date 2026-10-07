@@ -1,14 +1,17 @@
 import type { InferenceSession, Tensor } from 'onnxruntime-web';
 import { ANNOT_N_FRAMES, AUDIO_N_SAMPLES, N_CONTOUR_BINS, N_PITCH_BINS, ONNX_INPUT, ONNX_OUTPUTS } from './constants';
 import { unwrapOutput, windowAudio } from './windowing';
+import type { TranscriberAssets } from './assets';
 
 export type ModelOutput = { note: number[][]; onset: number[][]; contour: number[][] };
 
 export type ModelOptions = {
-  /** URL of nmp.onnx */
+  /** URL of nmp.onnx (ignored when `assets` is given) */
   modelUrl: string;
-  /** Directory URL holding onnxruntime-web's .wasm files (trailing slash). */
+  /** Directory URL holding onnxruntime-web's loader .mjs and .wasm files (trailing slash). */
   wasmPaths: string;
+  /** Pre-downloaded bytes from `downloadAssets`; lets the app show its own progress and cache them. */
+  assets?: TranscriberAssets;
   /** Windows per inference call. Higher is faster, uses more memory. */
   batchSize?: number;
   /** Worker threads; needs cross-origin isolation to be > 1. */
@@ -26,11 +29,15 @@ export class BasicPitchOnnx {
   static async load(opts: ModelOptions): Promise<BasicPitchOnnx> {
     const ort: Ort = opts.backend === 'webgpu' ? await import('onnxruntime-web/webgpu') : await import('onnxruntime-web/wasm');
     ort.env.wasm.wasmPaths = opts.wasmPaths;
+    if (opts.assets) ort.env.wasm.wasmBinary = opts.assets.wasmBinary;
     ort.env.wasm.numThreads = opts.numThreads ?? (typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1);
-    const session = await ort.InferenceSession.create(opts.modelUrl, {
+    const sessionOptions: InferenceSession.SessionOptions = {
       executionProviders: opts.backend === 'webgpu' ? ['webgpu', 'wasm'] : ['wasm'],
       graphOptimizationLevel: 'all',
-    });
+    };
+    const session = opts.assets
+      ? await ort.InferenceSession.create(opts.assets.model, sessionOptions)
+      : await ort.InferenceSession.create(opts.modelUrl, sessionOptions);
     return new BasicPitchOnnx(ort, session, opts.batchSize ?? 8);
   }
 

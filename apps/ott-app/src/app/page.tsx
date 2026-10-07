@@ -3,9 +3,16 @@ import { useState } from 'react';
 import type { OTTNote } from '@ot-tunes/notes';
 import { OttReactPlayback } from '@old-time-tunes/ott-react-playback';
 import { transcribeAudio } from '@ot-tunes/transcribe';
+import { useTranscriberAssets } from './use-transcriber-assets';
+import { TranscriberDownload } from './transcriber-download';
 import styles from './page.module.css';
 
 const API = process.env.NEXT_PUBLIC_OTT_API_URL ?? 'http://localhost:8000';
+const ASSET_URLS = {
+  modelUrl: '/model/nmp.onnx',
+  wasmUrl: '/ort/ort-wasm-simd-threaded.wasm',
+};
+const WASM_PATHS = '/ort/';
 
 // Dev hook so the browser pipeline can be driven from the console / parity scripts.
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
@@ -26,6 +33,7 @@ export default function Index() {
   const [minNoteMs, setMinNoteMs] = useState(58);
   const [monophonic, setMonophonic] = useState(true);
   const [engine, setEngine] = useState<Engine>('browser');
+  const assets = useTranscriberAssets(ASSET_URLS);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState<Loaded | null>(null);
@@ -41,10 +49,20 @@ export default function Index() {
       let notes: OTTNote[];
       let how: string;
       if (engine === 'browser') {
+        setBusy(
+          assets.status === 'ready'
+            ? 'Loading model…'
+            : 'Downloading the transcriber…'
+        );
+        const bytes = await assets.ensure(); // downloads only if not already on this device
         setBusy('Loading model…');
         const { notes: n, timing } = await transcribeAudio(
           await audio.arrayBuffer(),
-          { modelUrl: '/model/nmp.onnx', wasmPaths: '/ort/' },
+          {
+            modelUrl: ASSET_URLS.modelUrl,
+            wasmPaths: WASM_PATHS,
+            assets: bytes,
+          },
           { monophonic, minNoteLengthMs: minNoteMs },
           (f) =>
             setBusy(`Transcribing in your browser… ${Math.round(f * 100)}%`)
@@ -153,7 +171,9 @@ export default function Index() {
               file && transcribe(file, file.name, URL.createObjectURL(file))
             }
           >
-            Transcribe
+            {engine === 'browser' && assets.status === 'idle'
+              ? 'Download & transcribe'
+              : 'Transcribe'}
           </button>
         </div>
         <div className={styles.row}>
@@ -187,6 +207,12 @@ export default function Index() {
             </select>
           </label>
         </div>
+        {engine === 'browser' && (
+          <TranscriberDownload
+            assets={assets}
+            onDownload={() => void assets.ensure().catch(() => undefined)}
+          />
+        )}
         <div className={styles.row}>
           <span className={styles.muted}>No recording handy?</span>
           <button

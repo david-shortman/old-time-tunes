@@ -7,3 +7,5 @@ export type { PostprocessOptions } from './lib/postprocess';
 export { decodeToModelRate } from './lib/audio';
 export { windowAudio, unwrapOutput, outputFramesFor } from './lib/windowing';
 export * from './lib/constants';
+export { downloadAssets, areAssetsCached, cachedBytes, removeAssets, formatBytes, APPROX_SIZES } from './lib/assets';
+export type { AssetUrls, AssetName, AssetProgress, TranscriberAssets } from './lib/assets';

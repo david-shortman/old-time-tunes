@@ -18,7 +18,8 @@ Dev logs: [Old Time Tunes Dev Log](https://dev.to/davidshortman) on dev.to.
 | `ott-transcribe` | `libs/ts/transcribe` | Basic Pitch in the browser via ONNX Runtime Web, same post-processing as the API |
 | `ott-bp-api` | `apps/ott-bp-api` | FastAPI service wrapping Spotify's Basic Pitch, with fiddle-oriented post-processing, plus an evaluation harness in `eval/` |
 
-Transcription runs in the browser by default (ONNX Runtime Web, no server);
+Transcription runs in the browser by default (ONNX Runtime Web, no server) after an
+explicit one-time ~14 MB download that the page asks for and tracks;
 the Python API remains as the reference implementation and the evaluation
 harness (see `apps/ott-bp-api/eval/README.md` for what the model does well
 and badly). The upload form has a switch between the two.

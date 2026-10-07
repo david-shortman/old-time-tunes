@@ -10,7 +10,7 @@ let cached: { key: string; model: Promise<BasicPitchOnnx> } | null = null;
 
 /** Load the model once per page; subsequent calls with the same options reuse it. */
 export function getModel(opts: ModelOptions): Promise<BasicPitchOnnx> {
-  const key = JSON.stringify(opts);
+  const key = JSON.stringify({ ...opts, assets: opts.assets ? 'bytes' : undefined });
   if (!cached || cached.key !== key) cached = { key, model: BasicPitchOnnx.load(opts) };
   return cached.model;
 }
