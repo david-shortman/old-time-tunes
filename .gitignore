@@ -46,3 +46,30 @@ Thumbs.db
 # Next.js
 .next
 out
+
+# transcription eval renders
+apps/ott-bp-api/eval/out
+*.tsbuildinfo
+
+# lint reports
+/reports
+
+# generated browser-inference assets (see ott-app copy-assets target)
+apps/ott-app/public/ort
+apps/ott-app/public/model
+
+# local Firebase config and emulator state
+apps/ott-app/.env.local
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+storage-debug.log
+/emulator-data
+
+# Next build output
+/dist
+apps/ott-app/out
+
+# personal recordings used for local inspection
+apps/ott-bp-api/eval/real/private-*

@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(data) { return signedIn() && data.ownerUid == request.auth.uid; }
+    function str(v, max) { return v is string && v.size() <= max; }
+    function optStr(data, k, max) { return !(k in data) || data[k] == null || str(data[k], max); }
+    function strList(v, max) { return v is list && v.size() <= max; }
+
+    function validVariant(d) {
+      return str(d.tuneTitle, 200)
+        && strList(d.tuneAka, 20)
+        && d.visibility in ['private', 'public']
+        && d.instrument in ['fiddle', 'banjo', 'mandolin', 'guitar', 'voice', 'other']
+        && str(d.key, 40)
+        && optStr(d, 'tuning', 60)
+        && optStr(d, 'performer', 120)
+        && optStr(d, 'source', 300)
+        && strList(d.tags, 20)
+        && optStr(d, 'notes', 5000)
+        && d.durationSeconds is number && d.durationSeconds >= 0 && d.durationSeconds <= 3600
+        && d.noteCount is int && d.noteCount >= 0
+        && d.audio is map && str(d.audio.path, 300);
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /tunes/{tuneId} {
+      allow read: if true;
+      allow create, update: if signedIn()
+        && str(request.resource.data.title, 200)
+        && strList(request.resource.data.aka, 20)
+        && strList(request.resource.data.tags, 20);
+      allow delete: if false;
+    }
+
+    match /variants/{variantId} {
+      allow read: if resource.data.visibility == 'public' || isOwner(resource.data);
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && validVariant(request.resource.data);
+      allow update: if isOwner(resource.data)
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && validVariant(request.resource.data);
+      allow delete: if isOwner(resource.data);
+
+      function parent() { return get(/databases/$(database)/documents/variants/$(variantId)).data; }
+      function canReadParent() { return parent().visibility == 'public' || isOwner(parent()); }
+
+      match /transcription/{doc} {
+        allow read: if canReadParent();
+        allow write: if isOwner(parent()) && request.resource.data.notes is list && request.resource.data.notes.size() <= 5000;
+      }
+      match /revisions/{rev} {
+        allow read: if canReadParent();
+        allow create: if isOwner(parent());
+        allow update, delete: if false;
+      }
+    }
+  }
+}

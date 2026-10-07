@@ -1,0 +1,16 @@
+.page { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; display: grid; gap: 20px; }
+.header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 6px; }
+.header p { color: #5c6670; margin: 0; max-width: 60ch; }
+.panel { background: #fff; border: 1px solid #e6e1d6; border-radius: 12px; padding: 16px; display: grid; gap: 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.file { flex: 1 1 260px; display: flex; align-items: center; gap: 10px; border: 1px dashed #b9b1a1; border-radius: 8px; padding: 10px 12px; cursor: pointer; color: #3b4651; }
+.file input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.primary, .secondary { font: inherit; border-radius: 999px; padding: 9px 16px; cursor: pointer; border: 1px solid transparent; }
+.primary { background: #2f6f9f; color: #fff; }
+.primary:disabled, .secondary:disabled { opacity: 0.5; cursor: default; }
+.secondary { background: #f4f1ea; color: #1f2933; border-color: #e6e1d6; }
+.opt { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; color: #3b4651; }
+.opt select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid #d6cfc2; }
+.muted { color: #6b7785; font-size: 0.9rem; margin: 0; }
+.error { color: #b42318; margin: 0; font-size: 0.9rem; }
+.h2 { font-size: 1.05rem; font-weight: 600; margin: 0; }

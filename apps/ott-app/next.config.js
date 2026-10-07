@@ -11,7 +11,9 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false,
   },
-  output: 'standalone'
+  // Static export: the app is pure client code and deploys to Firebase Hosting's CDN.
+  output: 'export',
+  images: { unoptimized: true }
 };
 
 const plugins = [

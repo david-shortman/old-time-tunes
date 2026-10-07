@@ -20,3 +20,11 @@ tensorflow-metal = "1.1.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=8,<9)",
+    "onnxruntime (>=1.17,<1.23)",
+    "onnx (>=1.16,<1.19)",
+    "flake8 (>=7.4.1,<8.0.0)"
+]

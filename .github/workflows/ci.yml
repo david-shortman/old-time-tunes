@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  web:
+    name: Lint, test, build (web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx nx run-many -t lint test -p ott-app ott-react-playback ott-transcribe ott-library ott-notes
+      - run: npx nx run ott-app:export
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ott-app-static
+          path: apps/ott-app/out
+          retention-days: 7
+
+  python:
+    name: Lint and test (Python API)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pipx install poetry
+      - run: poetry install --no-root
+        working-directory: apps/ott-bp-api
+      - run: poetry run flake8 ott_bp_api tests eval
+        working-directory: apps/ott-bp-api
+      - run: poetry run pytest tests -q
+        working-directory: apps/ott-bp-api

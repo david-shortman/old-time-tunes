@@ -1,0 +1,10 @@
+.box { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 12px; border-radius: 8px; background: #f4f1ea; font-size: 0.9rem; color: #3b4651; }
+.muted { color: #6b7785; }
+.error { color: #b42318; }
+.button { font: inherit; border-radius: 999px; padding: 7px 14px; cursor: pointer; border: 1px solid #2f6f9f; background: #fff; color: #2f6f9f; }
+.button:hover { background: #2f6f9f; color: #fff; }
+.link { font: inherit; font-size: 0.85rem; background: none; border: 0; color: #6b7785; text-decoration: underline; cursor: pointer; padding: 0; }
+.progressWrap { flex: 1 1 100%; display: grid; gap: 6px; }
+.progressText { font-variant-numeric: tabular-nums; }
+.bar { height: 8px; border-radius: 999px; background: rgba(0,0,0,0.08); overflow: hidden; }
+.fill { height: 100%; background: #2f6f9f; transition: width 120ms linear; }

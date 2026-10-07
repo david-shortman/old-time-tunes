@@ -10,14 +10,30 @@
     "importHelpers": true,
     "target": "es2015",
     "module": "esnext",
-    "lib": ["es2020", "dom"],
+    "lib": [
+      "es2020",
+      "dom"
+    ],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@ot-tunes/audio2notes-node": ["libs/node/audio-2-notes/src/index.ts"],
-      "@ot-tunes/notes": ["libs/ts/notes/src/index.ts"]
+      "@old-time-tunes/ott-react-playback": [
+        "libs/react/playback/src/index.ts"
+      ],
+      "@ot-tunes/notes": [
+        "libs/ts/notes/src/index.ts"
+      ],
+      "@ot-tunes/transcribe": [
+        "libs/ts/transcribe/src/index.ts"
+      ],
+      "@ot-tunes/library": [
+        "libs/ts/library/src/index.ts"
+      ]
     }
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
 }

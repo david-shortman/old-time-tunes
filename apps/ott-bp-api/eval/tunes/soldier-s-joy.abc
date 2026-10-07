@@ -1,0 +1,14 @@
+X:1
+T:Soldier's Joy
+%% Source: thesession.org/tunes/1356 setting 1356 (open data, see thesession.org), melody only, chords removed
+R:hornpipe
+M:4/4
+L:1/8
+Q:1/4=90
+%%MIDI program 40
+%%MIDI gchordoff
+K:D
+|:AFDF AFDF|A2 d2 d2 cB|AFDF AFDF|G2E2 E2 FG|
+ AFDF AFDF|A2 d2 d2 de|fafd egec|d2 d2 d4:|
+ |:fdfd fagf|edcd efge|fdfd fagf|edcB A2 de|
+ fdfd fagf|ecAc efge|fafd egec|d2 d2 d4:|
