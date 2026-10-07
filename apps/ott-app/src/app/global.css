@@ -2,3 +2,10 @@ html { -webkit-text-size-adjust: 100%; font-family: ui-sans-serif, system-ui, -a
 body { margin: 0; }
 *, ::before, ::after { box-sizing: border-box; }
 button { font: inherit; }
+.site-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 960px; margin: 0 auto; padding: 14px 16px 0; }
+.brand { font-weight: 700; font-size: 1.1rem; text-decoration: none; color: #1f2933; }
+.site-header nav { display: flex; gap: 14px; align-items: center; font-size: 0.95rem; }
+.site-header nav a { color: #3b4651; text-decoration: none; }
+.site-header nav a:hover { text-decoration: underline; }
+.nav-cta { background: #2f6f9f; color: #fff !important; border-radius: 999px; padding: 7px 14px; }
+.nav-cta:hover { text-decoration: none !important; filter: brightness(1.1); }

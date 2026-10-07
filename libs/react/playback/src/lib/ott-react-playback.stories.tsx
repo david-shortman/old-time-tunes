@@ -4,7 +4,10 @@ import { OttReactPlayback } from './ott-react-playback';
 import { midiToNoteName } from './fingering';
 
 // Boil Them Cabbage Down, A part, eighth notes at 100 BPM
-const melody = [66, 66, 66, 64, 62, 67, 67, 67, 62, 64, 66, 66, 66, 64, 62, 64, 66, 64, 64, 64, 62, 64];
+const melody = [
+  66, 66, 66, 64, 62, 67, 67, 67, 62, 64, 66, 66, 66, 64, 62, 64, 66, 64, 64,
+  64, 62, 64,
+];
 const notes: OTTNote[] = melody.map((pitchMidi, i) => ({
   pitchMidi,
   noteName: midiToNoteName(pitchMidi),
@@ -23,5 +26,9 @@ type Story = StoryObj<typeof OttReactPlayback>;
 
 /** No recording: the notes alone play through the built-in synth. */
 export const SynthOnly: Story = {
-  args: { title: 'Boil Them Cabbage Down', subtitle: 'synthetic, A part', notes },
+  args: {
+    title: 'Boil Them Cabbage Down',
+    subtitle: 'synthetic, A part',
+    notes,
+  },
 };

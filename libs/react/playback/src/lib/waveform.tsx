@@ -14,10 +14,23 @@ type Props = {
 };
 
 /** A canvas waveform drawn at an explicit pixel width so it can share a zoomable time axis. */
-export function Waveform({ buffer, duration, width, height, color, bufferRate = 1 }: Props) {
+export function Waveform({
+  buffer,
+  duration,
+  width,
+  height,
+  color,
+  bufferRate = 1,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bins = Math.max(1, Math.floor(width / 2));
-  const peaks = useMemo(() => (buffer && duration > 0 ? waveformPeaks(buffer, bins, duration / bufferRate) : null), [buffer, bins, duration, bufferRate]);
+  const peaks = useMemo(
+    () =>
+      buffer && duration > 0
+        ? waveformPeaks(buffer, bins, duration / bufferRate)
+        : null,
+    [buffer, bins, duration, bufferRate]
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -42,5 +55,11 @@ export function Waveform({ buffer, duration, width, height, color, bufferRate = 
     }
   }, [peaks, width, height, color]);
 
-  return <canvas ref={canvasRef} className={styles.waveCanvas} style={{ width, height }} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className={styles.waveCanvas}
+      style={{ width, height }}
+    />
+  );
 }

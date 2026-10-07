@@ -13,3 +13,4 @@
 .opt select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid #d6cfc2; }
 .muted { color: #6b7785; font-size: 0.9rem; margin: 0; }
 .error { color: #b42318; margin: 0; font-size: 0.9rem; }
+.h2 { font-size: 1.05rem; font-weight: 600; margin: 0; }

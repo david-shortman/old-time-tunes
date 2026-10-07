@@ -1,0 +1,7 @@
+.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 16px; }
+.field { display: grid; gap: 4px; font-size: 0.85rem; color: #3b4651; }
+.wide { grid-column: 1 / -1; }
+.field input, .field select, .field textarea { font: inherit; font-size: 0.95rem; color: #1f2933; padding: 8px 10px; border: 1px solid #d6cfc2; border-radius: 8px; background: #fff; }
+.field textarea { resize: vertical; }
+.req { color: #b42318; font-size: 0.75rem; margin-left: 6px; }
+.hint { color: #6b7785; font-size: 0.75rem; margin-left: 6px; font-weight: 400; }

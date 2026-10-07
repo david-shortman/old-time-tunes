@@ -1,13 +1,37 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pause, Play, SkipBack, SkipForward, Trash2, Download, ZoomIn, ZoomOut, Maximize2, Grid3x3 } from 'lucide-react';
+import {
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  Trash2,
+  Download,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Grid3x3,
+  Repeat,
+} from 'lucide-react';
 import { Midi } from '@tonejs/midi';
 import type { OTTNote } from '@ot-tunes/notes';
 import { violinFingering } from './fingering';
 import { decodeAudioUrl, notesEnd, renderNotes } from './synth';
 import { NoteEditor, type Lane } from './note-editor';
 import { Fingerboard } from './fingerboard';
-import { ALL_KEYS, NOTE_VALUES, beatSeconds, detectKey, estimateTempo, nearestNoteValue, quantize, scaleTones, withPitch, type KeyInfo, type Tempo } from './music';
+import {
+  ALL_KEYS,
+  NOTE_VALUES,
+  beatSeconds,
+  detectKey,
+  estimateTempo,
+  nearestNoteValue,
+  quantize,
+  scaleTones,
+  withPitch,
+  type KeyInfo,
+  type Tempo,
+} from './music';
 import styles from './ott-react-playback.module.css';
 
 export type PlaybackMode = 'original' | 'synth' | 'both';
@@ -22,7 +46,13 @@ export type OttReactPlaybackProps = {
   onNotesChange?: (notes: OTTNote[]) => void;
   /** Base name for the downloaded MIDI file. */
   fileName?: string;
+  /** Grid saved with the tune; when given it overrides detection so bar lines stay put. */
+  initialGrid?: { bpm: number; offset: number; key: string };
+  /** Fires when the user changes key, tempo or downbeat. */
+  onGridChange?: (grid: { bpm: number; offset: number; key: string }) => void;
 };
+
+export type LoopRegion = { start: number; end: number };
 
 const RATES = [0.5, 0.75, 1];
 const GRIDS = [
@@ -37,36 +67,69 @@ const fmt = (s: number) => {
   return `${m}:${r < 10 ? '0' : ''}${r}`;
 };
 
-const sortNotes = (ns: ReadonlyArray<OTTNote>) => [...ns].sort((a, b) => a.startTimeSeconds - b.startTimeSeconds);
+const sortNotes = (ns: ReadonlyArray<OTTNote>) =>
+  [...ns].sort((a, b) => a.startTimeSeconds - b.startTimeSeconds);
 
 /**
  * Player, timeline and editor for a transcribed recording: the original waveform and the
  * waveform of the notes played back through a synth share one zoomable time axis with the
  * note lane, and the current note's name and fiddle fingering show above.
  */
-export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, onNotesChange, fileName = 'notes' }: OttReactPlaybackProps) {
+export function OttReactPlayback({
+  title,
+  subtitle,
+  audioUrl,
+  notes: notesProp,
+  onNotesChange,
+  fileName = 'notes',
+  initialGrid,
+  onGridChange,
+}: OttReactPlaybackProps) {
   const [notes, setNotes] = useState<OTTNote[]>(() => sortNotes(notesProp));
   useEffect(() => setNotes(sortNotes(notesProp)), [notesProp]);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [rate, setRate] = useState(1);
-  const [mode, setMode] = useState<PlaybackMode>(audioUrl ? 'original' : 'synth');
+  const [mode, setMode] = useState<PlaybackMode>(
+    audioUrl ? 'original' : 'synth'
+  );
   const [selected, setSelected] = useState(-1);
-  const [originalBuffer, setOriginalBuffer] = useState<AudioBuffer | null>(null);
+  const [originalBuffer, setOriginalBuffer] = useState<AudioBuffer | null>(
+    null
+  );
   const [synthBuffer, setSynthBuffer] = useState<AudioBuffer | null>(null);
 
   // grid
   const autoKey = useMemo(() => detectKey(notesProp), [notesProp]);
   const autoTempo = useMemo(() => estimateTempo(notesProp), [notesProp]);
-  const [keyOverride, setKeyOverride] = useState<KeyInfo | null>(null);
-  const [tempoOverride, setTempoOverride] = useState<Tempo | null>(null);
+  const gridFromProp = (g?: { bpm: number; offset: number; key: string }) => ({
+    key: g ? ALL_KEYS.find((k) => k.name === g.key) ?? null : null,
+    tempo: g ? { bpm: g.bpm, offset: g.offset } : null,
+  });
+  const [keyOverride, setKeyOverride] = useState<KeyInfo | null>(
+    () => gridFromProp(initialGrid).key
+  );
+  const [tempoOverride, setTempoOverride] = useState<Tempo | null>(
+    () => gridFromProp(initialGrid).tempo
+  );
   useEffect(() => {
-    setKeyOverride(null);
-    setTempoOverride(null);
+    const g = gridFromProp(initialGrid);
+    setKeyOverride(g.key);
+    setTempoOverride(g.tempo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notesProp]);
   const keyInfo = keyOverride ?? autoKey;
   const tempo = tempoOverride ?? autoTempo;
+  const gridReported = useRef('');
+  useEffect(() => {
+    const g = { bpm: tempo.bpm, offset: tempo.offset, key: keyInfo.name };
+    const sig = JSON.stringify(g);
+    if (gridReported.current && gridReported.current !== sig) onGridChange?.(g);
+    gridReported.current = sig;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tempo.bpm, tempo.offset, keyInfo.name]);
+  const [loop, setLoop] = useState<LoopRegion | null>(null);
   const [snap, setSnap] = useState(true);
   const [gridBeats, setGridBeats] = useState(0.5);
   const [pxPerSec, setPxPerSec] = useState(80);
@@ -78,7 +141,8 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
   const clockRef = useRef<{ ctxStart: number; offset: number } | null>(null);
   const rafRef = useRef(0);
 
-  const duration = Math.max(originalBuffer?.duration ?? 0, notesEnd(notes)) + 0.25;
+  const duration =
+    Math.max(originalBuffer?.duration ?? 0, notesEnd(notes)) + 0.25;
 
   useEffect(() => {
     if (!audioUrl) {
@@ -100,7 +164,9 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
       setSynthBuffer(null);
       return;
     }
-    renderNotes(notes, duration, rate).then((buf) => !cancelled && setSynthBuffer(buf));
+    renderNotes(notes, duration, rate).then(
+      (buf) => !cancelled && setSynthBuffer(buf)
+    );
     return () => {
       cancelled = true;
     };
@@ -138,13 +204,15 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
       src.connect(synthGainRef.current as GainNode);
       src.start(0, Math.min(synthBuffer.duration, fromSeconds / rate));
       synthSourceRef.current = src;
-      if (!audioRef.current) clockRef.current = { ctxStart: ctx.currentTime, offset: fromSeconds };
+      if (!audioRef.current)
+        clockRef.current = { ctxStart: ctx.currentTime, offset: fromSeconds };
     },
     [synthBuffer, rate, ensureCtx, stopSynth]
   );
 
   useEffect(() => {
-    if (synthGainRef.current) synthGainRef.current.gain.value = mode === 'original' ? 0 : 1;
+    if (synthGainRef.current)
+      synthGainRef.current.gain.value = mode === 'original' ? 0 : 1;
     if (audioRef.current) audioRef.current.volume = mode === 'synth' ? 0 : 1;
   }, [mode]);
 
@@ -182,7 +250,15 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
     const tick = () => {
       let t = currentTime;
       if (audioRef.current) t = audioRef.current.currentTime;
-      else if (clockRef.current && ctxRef.current) t = clockRef.current.offset + (ctxRef.current.currentTime - clockRef.current.ctxStart) * rate;
+      else if (clockRef.current && ctxRef.current)
+        t =
+          clockRef.current.offset +
+          (ctxRef.current.currentTime - clockRef.current.ctxStart) * rate;
+      if (loop && t >= loop.end) {
+        seek(loop.start);
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
       if (t >= duration && duration > 0) {
         pause();
         setCurrentTime(duration);
@@ -194,7 +270,7 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPlaying, duration, rate]);
+  }, [isPlaying, duration, rate, loop]);
 
   useEffect(
     () => () => {
@@ -205,13 +281,27 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
   );
 
   // --- derived
-  const activeIndex = useMemo(() => notes.findIndex((n) => currentTime >= n.startTimeSeconds && currentTime < n.startTimeSeconds + n.durationSeconds), [notes, currentTime]);
+  const activeIndex = useMemo(
+    () =>
+      notes.findIndex(
+        (n) =>
+          currentTime >= n.startTimeSeconds &&
+          currentTime < n.startTimeSeconds + n.durationSeconds
+      ),
+    [notes, currentTime]
+  );
   const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
   const fingering = activeNote ? violinFingering(activeNote.pitchMidi) : null;
-  const selectedNote = selected >= 0 && selected < notes.length ? notes[selected] : null;
+  const selectedNote =
+    selected >= 0 && selected < notes.length ? notes[selected] : null;
 
   const jumpToNote = (dir: 1 | -1) => {
-    const target = dir > 0 ? notes.find((n) => n.startTimeSeconds > currentTime + 0.01) : [...notes].reverse().find((n) => n.startTimeSeconds < currentTime - 0.15);
+    const target =
+      dir > 0
+        ? notes.find((n) => n.startTimeSeconds > currentTime + 0.01)
+        : [...notes]
+            .reverse()
+            .find((n) => n.startTimeSeconds < currentTime - 0.15);
     if (target) seek(target.startTimeSeconds);
   };
 
@@ -236,7 +326,12 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
     if (!selectedNote) return;
     const tones = scaleTones(keyInfo, 40, 100);
     const i = tones.indexOf(selectedNote.pitchMidi);
-    const target = i >= 0 ? tones[Math.max(0, Math.min(tones.length - 1, i + dir))] : tones.find((t) => (dir > 0 ? t > selectedNote.pitchMidi : t < selectedNote.pitchMidi)) ?? selectedNote.pitchMidi;
+    const target =
+      i >= 0
+        ? tones[Math.max(0, Math.min(tones.length - 1, i + dir))]
+        : tones.find((t) =>
+            dir > 0 ? t > selectedNote.pitchMidi : t < selectedNote.pitchMidi
+          ) ?? selectedNote.pitchMidi;
     patchSelected({ pitchMidi: target });
   };
 
@@ -252,8 +347,19 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
     const track = midi.addTrack();
     track.instrument.number = 40;
     for (const n of notes) {
-      track.addNote({ midi: n.pitchMidi, time: n.startTimeSeconds, duration: n.durationSeconds, velocity: Math.min(1, n.amplitude) });
-      n.pitchBends?.forEach((b, i) => track.addPitchBend({ time: n.startTimeSeconds + (i * n.durationSeconds) / n.pitchBends.length, value: Math.max(-2, Math.min(2, b)) }));
+      track.addNote({
+        midi: n.pitchMidi,
+        time: n.startTimeSeconds,
+        duration: n.durationSeconds,
+        velocity: Math.min(1, n.amplitude),
+      });
+      n.pitchBends?.forEach((b, i) =>
+        track.addPitchBend({
+          time:
+            n.startTimeSeconds + (i * n.durationSeconds) / n.pitchBends.length,
+          value: Math.max(-2, Math.min(2, b)),
+        })
+      );
     }
     const blob = new Blob([midi.toArray()], { type: 'audio/midi' });
     const url = URL.createObjectURL(blob);
@@ -264,16 +370,52 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
     URL.revokeObjectURL(url);
   };
 
+  const setLoopStart = () =>
+    setLoop((l) => ({
+      start: currentTime,
+      end:
+        l && l.end > currentTime
+          ? l.end
+          : Math.min(duration, currentTime + 4 * beatSeconds(tempo)),
+    }));
+  const setLoopEnd = () =>
+    setLoop((l) => ({
+      start:
+        l && l.start < currentTime
+          ? l.start
+          : Math.max(0, currentTime - 4 * beatSeconds(tempo)),
+      end: currentTime,
+    }));
+  const loopSelected = () => {
+    if (!selectedNote) return;
+    setLoop({
+      start: selectedNote.startTimeSeconds,
+      end: selectedNote.startTimeSeconds + selectedNote.durationSeconds,
+    });
+  };
+
   const lanes: Lane[] = [
-    ...(audioUrl ? [{ label: 'recording', buffer: originalBuffer, color: '#2f6f9f' }] : []),
-    { label: 'from notes', buffer: synthBuffer, color: '#c2571a', bufferRate: rate },
+    ...(audioUrl
+      ? [{ label: 'recording', buffer: originalBuffer, color: '#2f6f9f' }]
+      : []),
+    {
+      label: 'from notes',
+      buffer: synthBuffer,
+      color: '#c2571a',
+      bufferRate: rate,
+    },
   ];
-  const zoom = (f: number) => setPxPerSec((p) => Math.max(10, Math.min(16000 / Math.max(1, duration), p * f)));
+  const zoom = (f: number) =>
+    setPxPerSec((p) =>
+      Math.max(10, Math.min(16000 / Math.max(1, duration), p * f))
+    );
   const fit = () => setPxPerSec(Math.max(10, 880 / Math.max(1, duration)));
 
   return (
     <div className={styles.root}>
-      {audioUrl && <audio ref={audioRef} src={audioUrl} preload="auto" onEnded={pause} />}
+      {audioUrl && (
+        <audio ref={audioRef} src={audioUrl} preload="auto" onEnded={pause} />
+      )}
 
       <div className={styles.header}>
         <div>
@@ -287,10 +429,16 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
         {activeNote ? (
           <div>
             <div className={styles.nowNote}>{activeNote.noteName}</div>
-            <div className={styles.nowFingering}>{fingering?.label ?? 'outside fiddle range'}</div>
+            <div className={styles.nowFingering}>
+              {fingering?.label ?? 'outside fiddle range'}
+            </div>
           </div>
         ) : (
-          <div className={styles.nowIdle}>{isPlaying ? '…' : 'Press play. The current note and where to put your finger show here.'}</div>
+          <div className={styles.nowIdle}>
+            {isPlaying
+              ? '…'
+              : 'Press play. The current note and where to put your finger show here.'}
+          </div>
         )}
         <Fingerboard fingering={fingering} />
       </div>
@@ -299,7 +447,14 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
       <div className={styles.toolbar}>
         <label className={styles.tool}>
           key
-          <select value={keyInfo.name} onChange={(e) => setKeyOverride(ALL_KEYS.find((k) => k.name === e.target.value) ?? null)}>
+          <select
+            value={keyInfo.name}
+            onChange={(e) =>
+              setKeyOverride(
+                ALL_KEYS.find((k) => k.name === e.target.value) ?? null
+              )
+            }
+          >
             {ALL_KEYS.map((k) => (
               <option key={k.name} value={k.name}>
                 {k.name}
@@ -310,34 +465,81 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
         </label>
         <label className={styles.tool}>
           bpm
-          <input type="number" min={40} max={240} step={0.5} value={tempo.bpm} onChange={(e) => setTempoOverride({ ...tempo, bpm: Number(e.target.value) || tempo.bpm })} />
+          <input
+            type="number"
+            min={40}
+            max={240}
+            step={0.5}
+            value={tempo.bpm}
+            onChange={(e) =>
+              setTempoOverride({
+                ...tempo,
+                bpm: Number(e.target.value) || tempo.bpm,
+              })
+            }
+          />
         </label>
-        <button className={styles.btnSmall} onClick={() => setTempoOverride({ ...tempo, offset: selectedNote ? selectedNote.startTimeSeconds : currentTime })} title="Line the bar lines up with the selected note (or the playhead)">
+        <button
+          className={styles.btnSmall}
+          onClick={() =>
+            setTempoOverride({
+              ...tempo,
+              offset: selectedNote
+                ? selectedNote.startTimeSeconds
+                : currentTime,
+            })
+          }
+          title="Line the bar lines up with the selected note (or the playhead)"
+        >
           downbeat here
         </button>
         {tempoOverride && (
-          <button className={styles.btnSmall} onClick={() => setTempoOverride(null)}>
+          <button
+            className={styles.btnSmall}
+            onClick={() => setTempoOverride(null)}
+          >
             auto tempo
           </button>
         )}
         <span className={styles.group}>
-          <button className={`${styles.chip} ${snap ? styles.chipOn : ''}`} onClick={() => setSnap((s) => !s)} title="Snap starts to the grid and lengths to note values">
+          <button
+            className={`${styles.chip} ${snap ? styles.chipOn : ''}`}
+            onClick={() => setSnap((s) => !s)}
+            title="Snap starts to the grid and lengths to note values"
+          >
             <Grid3x3 size={14} /> snap
           </button>
           {GRIDS.map((g) => (
-            <button key={g.beats} className={`${styles.chip} ${gridBeats === g.beats ? styles.chipOn : ''}`} onClick={() => setGridBeats(g.beats)}>
+            <button
+              key={g.beats}
+              className={`${styles.chip} ${
+                gridBeats === g.beats ? styles.chipOn : ''
+              }`}
+              onClick={() => setGridBeats(g.beats)}
+            >
               {g.label}
             </button>
           ))}
         </span>
-        <button className={styles.btnSmall} onClick={() => updateNotes(quantize(notes, tempo, gridBeats))}>
+        <button
+          className={styles.btnSmall}
+          onClick={() => updateNotes(quantize(notes, tempo, gridBeats))}
+        >
           quantize all
         </button>
         <span className={styles.group}>
-          <button className={styles.chip} onClick={() => zoom(1 / 1.3)} aria-label="zoom out">
+          <button
+            className={styles.chip}
+            onClick={() => zoom(1 / 1.3)}
+            aria-label="zoom out"
+          >
             <ZoomOut size={14} />
           </button>
-          <button className={styles.chip} onClick={() => zoom(1.3)} aria-label="zoom in">
+          <button
+            className={styles.chip}
+            onClick={() => zoom(1.3)}
+            aria-label="zoom in"
+          >
             <ZoomIn size={14} />
           </button>
           <button className={styles.chip} onClick={fit} aria-label="fit">
@@ -360,32 +562,60 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
           pxPerSec={pxPerSec}
           follow={isPlaying}
           lanes={lanes}
+          loop={loop}
           onSelect={setSelected}
           onSeek={seek}
           onChange={updateNotes}
-          onZoom={(p) => setPxPerSec(Math.max(10, Math.min(16000 / Math.max(1, duration), p)))}
+          onZoom={(p) =>
+            setPxPerSec(
+              Math.max(10, Math.min(16000 / Math.max(1, duration), p))
+            )
+          }
         />
         <div className={styles.times}>
           <span>{fmt(currentTime)}</span>
-          <span className={styles.hintInline}>drag a note to move it · drag its edge to change its length · hold ⌥ for notes outside the key · double-click to add · ⌘/ctrl+scroll to zoom</span>
+          <span className={styles.hintInline}>
+            drag a note to move it · drag its edge to change its length · hold ⌥
+            for notes outside the key · double-click to add · ⌘/ctrl+scroll to
+            zoom
+          </span>
           <span>{fmt(duration)}</span>
         </div>
       </div>
 
       <div className={styles.controls}>
-        <button className={styles.btn} onClick={() => jumpToNote(-1)} aria-label="previous note">
+        <button
+          className={styles.btn}
+          onClick={() => jumpToNote(-1)}
+          aria-label="previous note"
+        >
           <SkipBack size={16} /> note
         </button>
-        <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={isPlaying ? pause : play} aria-label={isPlaying ? 'pause' : 'play'}>
+        <button
+          className={`${styles.btn} ${styles.btnPrimary}`}
+          onClick={isPlaying ? pause : play}
+          aria-label={isPlaying ? 'pause' : 'play'}
+        >
           {isPlaying ? <Pause size={22} /> : <Play size={22} />}
         </button>
-        <button className={styles.btn} onClick={() => jumpToNote(1)} aria-label="next note">
+        <button
+          className={styles.btn}
+          onClick={() => jumpToNote(1)}
+          aria-label="next note"
+        >
           note <SkipForward size={16} />
         </button>
         <span className={styles.group}>
           <span className={styles.groupLabel}>hear</span>
-          {(audioUrl ? (['original', 'synth', 'both'] as PlaybackMode[]) : (['synth'] as PlaybackMode[])).map((m) => (
-            <button key={m} className={`${styles.chip} ${mode === m ? styles.chipOn : ''}`} onClick={() => setMode(m)}>
+          {(audioUrl
+            ? (['original', 'synth', 'both'] as PlaybackMode[])
+            : (['synth'] as PlaybackMode[])
+          ).map((m) => (
+            <button
+              key={m}
+              className={`${styles.chip} ${mode === m ? styles.chipOn : ''}`}
+              onClick={() => setMode(m)}
+            >
               {m}
             </button>
           ))}
@@ -393,19 +623,60 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
         <span className={styles.group}>
           <span className={styles.groupLabel}>speed</span>
           {RATES.map((r) => (
-            <button key={r} className={`${styles.chip} ${rate === r ? styles.chipOn : ''}`} onClick={() => setRate(r)}>
+            <button
+              key={r}
+              className={`${styles.chip} ${rate === r ? styles.chipOn : ''}`}
+              onClick={() => setRate(r)}
+            >
               {r}×
             </button>
           ))}
         </span>
-        <button className={styles.btn} onClick={downloadMidi} disabled={!notes.length}>
+        <span
+          className={styles.group}
+          title="Repeat a section to break it down"
+        >
+          <span className={styles.groupLabel}>
+            <Repeat size={12} /> loop
+          </span>
+          <button className={styles.chip} onClick={setLoopStart}>
+            start here
+          </button>
+          <button className={styles.chip} onClick={setLoopEnd}>
+            end here
+          </button>
+          {selectedNote && (
+            <button className={styles.chip} onClick={loopSelected}>
+              this note
+            </button>
+          )}
+          {loop && (
+            <button
+              className={`${styles.chip} ${styles.chipOn}`}
+              onClick={() => setLoop(null)}
+            >
+              {fmt(loop.start)}–{fmt(loop.end)} ✕
+            </button>
+          )}
+        </span>
+        <button
+          className={styles.btn}
+          onClick={downloadMidi}
+          disabled={!notes.length}
+        >
           <Download size={16} /> MIDI
         </button>
       </div>
 
       <div className={styles.editor}>
         <div className={styles.editorHead}>
-          <h3>{selectedNote ? `${selectedNote.noteName} · ${nearestNoteValue(selectedNote.durationSeconds, tempo).name} · ${violinFingering(selectedNote.pitchMidi)?.label ?? ''}` : 'Edit'}</h3>
+          <h3>
+            {selectedNote
+              ? `${selectedNote.noteName} · ${
+                  nearestNoteValue(selectedNote.durationSeconds, tempo).name
+                } · ${violinFingering(selectedNote.pitchMidi)?.label ?? ''}`
+              : 'Edit'}
+          </h3>
           {selectedNote && (
             <button className={styles.btn} onClick={deleteSelected}>
               <Trash2 size={16} /> delete
@@ -417,14 +688,44 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
             <div className={styles.field}>
               pitch
               <span className={styles.stepper}>
-                <button className={styles.btnSmall} onClick={() => stepDegree(-1)} title="down one scale degree">▼</button>
-                <input type="number" value={selectedNote.pitchMidi} min={40} max={100} onChange={(e) => patchSelected({ pitchMidi: Number(e.target.value) })} />
-                <button className={styles.btnSmall} onClick={() => stepDegree(1)} title="up one scale degree">▲</button>
+                <button
+                  className={styles.btnSmall}
+                  onClick={() => stepDegree(-1)}
+                  title="down one scale degree"
+                >
+                  ▼
+                </button>
+                <input
+                  type="number"
+                  value={selectedNote.pitchMidi}
+                  min={40}
+                  max={100}
+                  onChange={(e) =>
+                    patchSelected({ pitchMidi: Number(e.target.value) })
+                  }
+                />
+                <button
+                  className={styles.btnSmall}
+                  onClick={() => stepDegree(1)}
+                  title="up one scale degree"
+                >
+                  ▲
+                </button>
               </span>
             </div>
             <label className={styles.field}>
               length
-              <select value={nearestNoteValue(selectedNote.durationSeconds, tempo).beats} onChange={(e) => patchSelected({ durationSeconds: Number(e.target.value) * beatSeconds(tempo) })}>
+              <select
+                value={
+                  nearestNoteValue(selectedNote.durationSeconds, tempo).beats
+                }
+                onChange={(e) =>
+                  patchSelected({
+                    durationSeconds:
+                      Number(e.target.value) * beatSeconds(tempo),
+                  })
+                }
+              >
                 {NOTE_VALUES.map((v) => (
                   <option key={v.beats} value={v.beats}>
                     {v.name}
@@ -434,15 +735,37 @@ export function OttReactPlayback({ title, subtitle, audioUrl, notes: notesProp, 
             </label>
             <label className={styles.field}>
               start (s)
-              <input type="number" step={0.01} value={Number(selectedNote.startTimeSeconds.toFixed(3))} onChange={(e) => patchSelected({ startTimeSeconds: Math.max(0, Number(e.target.value)) })} />
+              <input
+                type="number"
+                step={0.01}
+                value={Number(selectedNote.startTimeSeconds.toFixed(3))}
+                onChange={(e) =>
+                  patchSelected({
+                    startTimeSeconds: Math.max(0, Number(e.target.value)),
+                  })
+                }
+              />
             </label>
             <label className={styles.field}>
               duration (s)
-              <input type="number" step={0.01} min={0.03} value={Number(selectedNote.durationSeconds.toFixed(3))} onChange={(e) => patchSelected({ durationSeconds: Math.max(0.03, Number(e.target.value)) })} />
+              <input
+                type="number"
+                step={0.01}
+                min={0.03}
+                value={Number(selectedNote.durationSeconds.toFixed(3))}
+                onChange={(e) =>
+                  patchSelected({
+                    durationSeconds: Math.max(0.03, Number(e.target.value)),
+                  })
+                }
+              />
             </label>
           </div>
         ) : (
-          <p className={styles.hint}>Click a note to select it. Arrow keys move it by scale degree or grid step, Delete removes it. Download the result as MIDI.</p>
+          <p className={styles.hint}>
+            Click a note to select it. Arrow keys move it by scale degree or
+            grid step, Delete removes it. Download the result as MIDI.
+          </p>
         )}
       </div>
     </div>

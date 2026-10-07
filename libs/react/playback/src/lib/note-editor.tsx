@@ -36,6 +36,7 @@ type Props = {
   pxPerSec: number;
   follow: boolean;
   lanes: Lane[];
+  loop?: { start: number; end: number } | null;
   onSelect: (i: number) => void;
   onSeek: (t: number) => void;
   onChange: (notes: OTTNote[], focus?: OTTNote) => void;
@@ -75,6 +76,7 @@ export function NoteEditor({
   pxPerSec,
   follow,
   lanes,
+  loop,
   onSelect,
   onSeek,
   onChange,
@@ -655,6 +657,16 @@ export function NoteEditor({
                   </g>
                 );
               })}
+              {loop && (
+                <rect
+                  x={x(loop.start)}
+                  y={0}
+                  width={Math.max(1, x(loop.end) - x(loop.start))}
+                  height={height}
+                  className={styles.loopRegion}
+                  pointerEvents="none"
+                />
+              )}
               {/* playhead */}
               <line
                 x1={playheadX}

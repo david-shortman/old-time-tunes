@@ -26,6 +26,9 @@
       ],
       "@ot-tunes/transcribe": [
         "libs/ts/transcribe/src/index.ts"
+      ],
+      "@ot-tunes/library": [
+        "libs/ts/library/src/index.ts"
       ]
     }
   },

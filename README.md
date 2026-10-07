@@ -12,9 +12,10 @@ Dev logs: [Old Time Tunes Dev Log](https://dev.to/davidshortman) on dev.to.
 
 | project | path | what it is |
 | --- | --- | --- |
-| `ott-app` | `apps/ott-app` | Next.js app: upload a recording, view and edit the transcription |
+| `ott-app` | `apps/ott-app` | Next.js app: the library (search, follow along, loop), add a recording (transcribe, tidy notes, describe, save), tune pages with autosaving edits |
 | `ott-react-playback` | `libs/react/playback` | React player + timeline editor (fingering, waveform comparison, beat grid, note editing) |
 | `ott-notes` | `libs/ts/notes` | the shared `OTTNote` type |
+| `ott-library` | `libs/ts/library` | tune data model, storage interface (IndexedDB today), search |
 | `ott-transcribe` | `libs/ts/transcribe` | Basic Pitch in the browser via ONNX Runtime Web, same post-processing as the API |
 | `ott-bp-api` | `apps/ott-bp-api` | FastAPI service wrapping Spotify's Basic Pitch, with fiddle-oriented post-processing, plus an evaluation harness in `eval/` |
 
@@ -44,8 +45,9 @@ npx nx serve ott-bp-api     # FastAPI on :8000 (optional: only for the "server" 
 npx nx serve ott-app        # Next.js on :4200
 ```
 
-Open http://localhost:4200 and either upload a solo fiddle recording or load
-the bundled Henry Reed "Soldier's Joy" sample (Library of Congress).
+Open http://localhost:4200. The library starts empty; add a recording of yourself
+or the bundled Henry Reed "Soldier's Joy" sample (Library of Congress). The
+library is stored in the browser (IndexedDB) for now, so it lives on one device.
 
 ## Checks
 

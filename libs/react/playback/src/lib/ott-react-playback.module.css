@@ -106,3 +106,6 @@
 .edgeBanner:hover { opacity: 1; }
 .edgeBannerTop { top: 6px; }
 .edgeBannerBottom { bottom: 6px; }
+
+.loopRegion { fill: rgba(194, 87, 26, 0.12); stroke: rgba(194, 87, 26, 0.5); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.groupLabel svg { vertical-align: -2px; margin-right: 2px; }
