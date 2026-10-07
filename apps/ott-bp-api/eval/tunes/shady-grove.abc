@@ -1,0 +1,12 @@
+X:1
+T:Shady Grove
+%% Source: thesession.org/tunes/14220 setting 25845 (open data, see thesession.org), melody only, chords removed
+R:reel
+M:4/4
+L:1/8
+Q:1/4=100
+%%MIDI program 40
+%%MIDI gchordoff
+K:G
+|:A2 AA A2 AA|B2 A2 G4|A2 AA c2 d2|e4 e4|
+ g3 g e2 e2|d3 BA G3|A2 B2 D2 B2|A4 A4:|

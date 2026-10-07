@@ -46,3 +46,7 @@ Thumbs.db
 # Next.js
 .next
 out
+
+# transcription eval renders
+apps/ott-bp-api/eval/out
+*.tsbuildinfo

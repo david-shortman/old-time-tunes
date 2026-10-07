@@ -1,0 +1,14 @@
+X:1
+T:Cripple Creek
+%% Source: thesession.org/tunes/23886 setting 49222 (open data, see thesession.org), melody only, chords removed
+R:reel
+M:4/4
+L:1/8
+Q:1/4=100
+%%MIDI program 40
+%%MIDI gchordoff
+K:A
+e| gaaa fecA| defd e2 ee| Bc e2 cBAF| EFAB A2 ee|
+  ga2 b afec| defd  e2 ee| Bcef ecBA|EFAB A3 A||
+  Bccc BAFA| BcBA F2 A2| Bcec BAFD| EFAB A2 AA|
+  Bccc Bccc| BcBA F2 A2| Bcef ecBA| EFAB A4||

@@ -1,0 +1,14 @@
+X:1
+T:Old Joe Clark
+%% Source: thesession.org/tunes/14474 setting 26621 (open data, see thesession.org), melody only, chords removed
+R:reel
+M:4/4
+L:1/8
+Q:1/4=100
+%%MIDI program 40
+%%MIDI gchordoff
+K:Amix
+|:A2|e3 f g2 f2|e2 d2 c2 d2|e3 f g2 f2|e6 A2|
+ e3 f g2 f2|e2 d2 c2 B2|A2 c2 B2 G2|A6:|
+ |:E2|A3 A A2 A2|e2 d2 c4|A3 A c2 A2|B8|
+ A3 A A2 A2|e2 d2 c2 B2|A2 c2 B2 G2|A6:|
