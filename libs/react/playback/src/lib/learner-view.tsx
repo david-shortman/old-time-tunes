@@ -113,6 +113,73 @@ export function LearnerView({
     n.startTimeSeconds + n.durationSeconds > winStart &&
     n.startTimeSeconds < winStart + win;
 
+  // Stepping with the buttons while paused replays the hand-off, compressed to ~0.45 s, and in
+  // reverse when stepping back. A virtual time drives the lane while that runs; the strip and the
+  // clock keep showing the real playhead.
+  const [override, setOverride] = useState<{
+    time: number;
+    anchor: number;
+  } | null>(null);
+  const animRef = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(animRef.current), []);
+  const animateLane = (from: number, to: number, anchor: number, ms = 450) => {
+    cancelAnimationFrame(animRef.current);
+    const start = performance.now();
+    const frame = (now: number) => {
+      const p = Math.min(1, (now - start) / ms);
+      setOverride({ time: from + (to - from) * p, anchor });
+      if (p < 1) animRef.current = requestAnimationFrame(frame);
+    };
+    animRef.current = requestAnimationFrame(frame);
+  };
+  const leadFor = (prevStart: number | undefined, start: number) =>
+    Math.min(
+      2 * beatSeconds,
+      0.85 * (start - (prevStart ?? start - 2 * beatSeconds))
+    );
+  const stepNext = () => {
+    const i = notes.findIndex((n) => n.startTimeSeconds > currentTime + 0.01);
+    onNextNote();
+    if (i < 0 || isPlaying) return;
+    const target = notes[i];
+    const lead = leadFor(
+      notes[i - 1]?.startTimeSeconds,
+      target.startTimeSeconds
+    );
+    animateLane(
+      Math.max(currentTime, target.startTimeSeconds - lead),
+      target.startTimeSeconds + 0.3,
+      target.startTimeSeconds
+    );
+  };
+  const stepPrev = () => {
+    let i = -1;
+    for (let k = notes.length - 1; k >= 0; k--)
+      if (notes[k].startTimeSeconds < currentTime - 0.15) {
+        i = k;
+        break;
+      }
+    onPrevNote();
+    if (i < 0 || isPlaying) return;
+    const target = notes[i];
+    const cur = notes[i + 1];
+    const lead = cur
+      ? leadFor(target.startTimeSeconds, cur.startTimeSeconds)
+      : 0;
+    const from = cur
+      ? Math.min(currentTime, cur.startTimeSeconds + 0.3)
+      : currentTime;
+    const to = cur
+      ? Math.max(cur.startTimeSeconds - lead, target.startTimeSeconds + 0.3)
+      : target.startTimeSeconds + 0.3;
+    animateLane(from, to, target.startTimeSeconds);
+  };
+  // the override holds the settled pose while paused on the note it was made for
+  const t =
+    override && !isPlaying && Math.abs(override.anchor - currentTime) < 1e-3
+      ? override.time
+      : currentTime;
+
   // Snap-and-lock cards with contact. The note being played sits locked on the "now" line. A beat
   // or two before the next onset the next card winds up (slight pull-back), accelerates in until it
   // touches the primary's edge, then presses: both squash where they meet and the primary is nudged
@@ -122,9 +189,9 @@ export function LearnerView({
   const idx = useMemo(() => {
     let k = -1;
     for (let i = 0; i < notes.length; i++)
-      if (notes[i].startTimeSeconds <= currentTime) k = i;
+      if (notes[i].startTimeSeconds <= t) k = i;
     return k;
-  }, [notes, currentTime]);
+  }, [notes, t]);
   const current = idx >= 0 ? notes[idx] : null;
   const next = notes[idx + 1] ?? null;
   const prev = idx > 0 ? notes[idx - 1] : null;
@@ -133,9 +200,7 @@ export function LearnerView({
   const tn = next ? next.startTimeSeconds : Infinity;
   const lead = next ? Math.min(2 * beatSeconds, 0.85 * (tn - tc)) : 0; // anticipation window
   const u =
-    next && lead > 0
-      ? Math.max(0, Math.min(1, (currentTime - (tn - lead)) / lead))
-      : 0; // 0 → 1 across the wind-up
+    next && lead > 0 ? Math.max(0, Math.min(1, (t - (tn - lead)) / lead)) : 0; // 0 → 1 across the wind-up
 
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
   const easeOut = (v: number) => 1 - Math.pow(1 - v, 3);
@@ -180,7 +245,7 @@ export function LearnerView({
         pullBack;
 
   // after an onset: the arriving card snaps from the contact point into the centre, the old one is shoved out
-  const since = current ? currentTime - tc : 0;
+  const since = current ? t - tc : 0;
   const handoff = clamp01(since / 0.2);
   const atRelease = pairAt(1);
   const curX =
@@ -293,7 +358,7 @@ export function LearnerView({
       <div className={styles.controls}>
         <button
           className={styles.btn}
-          onClick={onPrevNote}
+          onClick={stepPrev}
           aria-label="previous note"
         >
           <SkipBack size={16} /> note
@@ -307,7 +372,7 @@ export function LearnerView({
         </button>
         <button
           className={styles.btn}
-          onClick={onNextNote}
+          onClick={stepNext}
           aria-label="next note"
         >
           note <SkipForward size={16} />
