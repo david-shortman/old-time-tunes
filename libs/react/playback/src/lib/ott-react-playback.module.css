@@ -128,3 +128,11 @@
 .bannerActions { display: inline-flex; gap: 10px; align-items: center; white-space: nowrap; }
 .link { font: inherit; font-size: 0.85rem; background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; padding: 0; }
 .btnSmall svg { vertical-align: -2px; margin-right: 3px; }
+
+/* ---- context menu */
+.menu { position: absolute; z-index: 5; min-width: 200px; background: var(--panel); border: 1px solid rgba(0,0,0,0.12); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18); padding: 6px; display: grid; gap: 2px; }
+.menuItem { display: flex; justify-content: space-between; gap: 16px; align-items: center; font: inherit; font-size: 0.9rem; text-align: left; border: 0; background: transparent; color: var(--ink); border-radius: 6px; padding: 8px 10px; cursor: pointer; }
+.menuItem:hover:not(:disabled) { background: rgba(47,111,159,0.1); }
+.menuItem:disabled { color: var(--muted); cursor: default; }
+.menuItem kbd { font: inherit; font-size: 0.75rem; color: var(--muted); border: 1px solid rgba(0,0,0,0.15); border-radius: 4px; padding: 0 5px; }
+.menuDanger { color: #b42318; }

@@ -37,9 +37,11 @@ What it shows, top to bottom:
     scale rows; hold ⌥ to land on notes outside the key
   - drag a note's left or right edge to change its start or length; with snap on,
     lengths snap to fixed note values
-  - double-click an empty spot to add a note; arrow keys nudge the selected note,
-    Delete removes it; right-click (or S) splits a note in two where you click,
-    for a held note that should have been two repeats
+  - select many: shift-click for a run of notes, ⌘/ctrl-click to add one; a drag
+    moves the whole selection
+  - right-click a note for Split here / Merge (consecutive notes of the same
+    pitch) / Delete; right-click empty space for Add note here; S, M and Delete
+    do the same from the keyboard; double-click empty space also adds a note
   - snapping is magnetic: a drag pulls to a grid line or a neighbouring note's
     edge only when close, moves freely otherwise, hold ⇧ to bypass, N toggles
   - drag the ruler to scrub; the view follows the playhead while playing;

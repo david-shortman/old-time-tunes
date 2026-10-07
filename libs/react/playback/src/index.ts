@@ -11,3 +11,4 @@ export {
   ALL_KEYS,
 } from './lib/music';
 export type { KeyInfo, Tempo, NoteValue } from './lib/music';
+export { canMerge, mergeNotes } from './lib/edits';

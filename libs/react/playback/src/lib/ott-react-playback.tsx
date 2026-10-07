@@ -20,6 +20,7 @@ import type { OTTNote } from '@ot-tunes/notes';
 import { violinFingering } from './fingering';
 import { decodeAudioUrl, notesEnd, renderNotes } from './synth';
 import { NoteEditor, type Lane } from './note-editor';
+import { canMerge, mergeNotes } from './edits';
 import { Fingerboard } from './fingerboard';
 import {
   ALL_KEYS,
@@ -193,7 +194,7 @@ export function OttReactPlayback({
   const [mode, setMode] = useState<PlaybackMode>(
     audioUrl ? 'original' : 'synth'
   );
-  const [selected, setSelected] = useState(-1);
+  const [selected, setSelected] = useState<number[]>([]);
   const [originalBuffer, setOriginalBuffer] = useState<AudioBuffer | null>(
     null
   );
@@ -358,8 +359,12 @@ export function OttReactPlayback({
   );
   const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
   const fingering = activeNote ? violinFingering(activeNote.pitchMidi) : null;
+  const anchor = selected.length ? selected[selected.length - 1] : -1;
   const selectedNote =
-    selected >= 0 && selected < notes.length ? notes[selected] : null;
+    selected.length === 1 && anchor < notes.length ? notes[anchor] : null;
+  const selectedNotes = selected
+    .filter((i) => i < notes.length)
+    .map((i) => notes[i]);
 
   const jumpToNote = (dir: 1 | -1) => {
     const target =
@@ -376,7 +381,8 @@ export function OttReactPlayback({
     setState(next);
     const active =
       next.view === 'fitted' && next.fitted ? next.fitted : next.played;
-    if (focus) setSelected(active.indexOf(focus));
+    if (focus)
+      setSelected(active.indexOf(focus) >= 0 ? [active.indexOf(focus)] : []);
     onNotesChange?.(active, next);
   };
   const updateNotes = (nextNotes: OTTNote[], focus?: OTTNote) => {
@@ -396,12 +402,12 @@ export function OttReactPlayback({
         fitted: normalizeRhythm(state.played, tempo, gridBeats),
       });
     } else commit({ ...state, view });
-    setSelected(-1);
+    setSelected([]);
   };
   const undoFit = () => {
     commit({ view: 'played', played: state.played, fitted: null });
     setBanner(null);
-    setSelected(-1);
+    setSelected([]);
   };
   const refit = () => {
     if (
@@ -414,7 +420,7 @@ export function OttReactPlayback({
     const fitted = normalizeRhythm(state.played, tempo, gridBeats);
     commit({ view: 'fitted', played: state.played, fitted });
     setBanner({ merged: state.played.length - fitted.length });
-    setSelected(-1);
+    setSelected([]);
   };
 
   const patchSelected = (patch: Partial<OTTNote>) => {
@@ -422,7 +428,7 @@ export function OttReactPlayback({
     let next: OTTNote = { ...selectedNote, ...patch };
     if (patch.pitchMidi !== undefined) next = withPitch(next, patch.pitchMidi);
     updateNotes(
-      notes.map((n, i) => (i === selected ? next : n)),
+      notes.map((n, i) => (i === anchor ? next : n)),
       next
     );
   };
@@ -441,9 +447,14 @@ export function OttReactPlayback({
   };
 
   const deleteSelected = () => {
-    if (!selectedNote) return;
-    updateNotes(notes.filter((_, i) => i !== selected));
-    setSelected(-1);
+    if (!selected.length) return;
+    updateNotes(notes.filter((_, i) => !selected.includes(i)));
+    setSelected([]);
+  };
+  const mergeSelected = () => {
+    if (!canMerge(notes, selected)) return;
+    const { notes: next, merged } = mergeNotes(notes, selected);
+    updateNotes(next, merged);
   };
 
   const downloadMidi = () => {
@@ -776,10 +787,11 @@ export function OttReactPlayback({
         <div className={styles.times}>
           <span>{fmt(currentTime)}</span>
           <span className={styles.hintInline}>
-            drag a note to move it · drag its edge to change its length ·
-            right-click (or S) to split a held note in two · snapping is
-            magnetic: hold ⇧ to drag freely, N toggles it · ⌥ for notes outside
-            the key · double-click to add · ⌘/ctrl+scroll to zoom
+            drag a note (or a selection) to move it · drag its edge to change
+            its length · shift-click a run, ⌘/ctrl-click to add · right-click
+            for split, merge, delete · snapping is magnetic: hold ⇧ to drag
+            freely, N toggles it · ⌥ for notes outside the key · double-click to
+            add · ⌘/ctrl+scroll to zoom
           </span>
           <span>{fmt(duration)}</span>
         </div>
@@ -847,9 +859,9 @@ export function OttReactPlayback({
           <button className={styles.chip} onClick={setLoopEnd}>
             end here
           </button>
-          {selectedNote && (
+          {selectedNotes.length > 0 && (
             <button className={styles.chip} onClick={loopSelected}>
-              this note
+              {selectedNotes.length > 1 ? 'selection' : 'this note'}
             </button>
           )}
           {loop && (
@@ -877,12 +889,30 @@ export function OttReactPlayback({
               ? `${selectedNote.noteName} · ${
                   nearestNoteValue(selectedNote.durationSeconds, tempo).name
                 } · ${violinFingering(selectedNote.pitchMidi)?.label ?? ''}`
+              : selectedNotes.length > 1
+              ? `${selectedNotes.length} notes selected`
               : 'Edit'}
           </h3>
-          {selectedNote && (
-            <button className={styles.btn} onClick={deleteSelected}>
-              <Trash2 size={16} /> delete
-            </button>
+          {selectedNotes.length > 0 && (
+            <span className={styles.row}>
+              {selectedNotes.length > 1 && (
+                <button
+                  className={styles.btn}
+                  onClick={mergeSelected}
+                  disabled={!canMerge(notes, selected)}
+                  title={
+                    canMerge(notes, selected)
+                      ? 'Merge into one note'
+                      : 'Only consecutive notes of the same pitch can be merged'
+                  }
+                >
+                  merge
+                </button>
+              )}
+              <button className={styles.btn} onClick={deleteSelected}>
+                <Trash2 size={16} /> delete
+              </button>
+            </span>
           )}
         </div>
         {selectedNote ? (
@@ -965,9 +995,10 @@ export function OttReactPlayback({
           </div>
         ) : (
           <p className={styles.hint}>
-            Click a note to select it. Arrow keys move it by scale degree or
-            grid step, S splits it, Delete removes it. Download the result as
-            MIDI.
+            Click a note to select it; shift-click for a run of notes,
+            ⌘/ctrl-click to add one. Arrow keys move the selection by scale
+            degree or grid step, S splits, M merges same-pitch neighbours,
+            Delete removes. Right-click for the menu.
           </p>
         )}
       </div>

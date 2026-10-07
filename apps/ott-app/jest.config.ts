@@ -1,4 +1,4 @@
-export default {
+const config = {
   displayName: 'ott-app',
   preset: '../../jest.preset.cjs',
   transform: {
@@ -12,3 +12,5 @@ export default {
   },
   coverageDirectory: '../../coverage/apps/ott-app',
 };
+
+export default config;

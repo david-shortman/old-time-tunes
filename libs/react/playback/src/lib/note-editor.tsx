@@ -21,6 +21,7 @@ import {
   spell,
   TREBLE_BOTTOM_STEP,
 } from './staff';
+import { canMerge, mergeNotes } from './edits';
 import styles from './ott-react-playback.module.css';
 
 export type Lane = {
@@ -34,7 +35,8 @@ type Props = {
   notes: OTTNote[];
   duration: number;
   currentTime: number;
-  selected: number;
+  /** indices of selected notes, in selection order (last = anchor) */
+  selected: number[];
   keyInfo: KeyInfo;
   tempo: Tempo;
   snap: boolean;
@@ -48,7 +50,7 @@ type Props = {
   onToggleSnap?: () => void;
   /** draw a treble staff lane above the ruler */
   showStaff?: boolean;
-  onSelect: (i: number) => void;
+  onSelect: (indices: number[]) => void;
   onSeek: (t: number) => void;
   onChange: (notes: OTTNote[], focus?: OTTNote) => void;
   onZoom: (pxPerSec: number) => void;
@@ -57,8 +59,8 @@ type Props = {
 export const ROW_H = 24;
 const RULER_H = 26;
 const LANE_H = 64;
-const STAFF_H = 112;
-const SPACE = 9; // px per staff space
+const STAFF_H = 118;
+const SPACE = 10; // px per staff space
 const HANDLE = 7;
 const MIN_DUR = 0.03;
 
@@ -68,15 +70,26 @@ type Drag = {
   x0: number;
   y0: number;
   orig: OTTNote;
-  preview: OTTNote;
+  /** preview of every moved note, keyed by index */
+  preview: Map<number, OTTNote>;
   moved: boolean;
   /** time of the snap point currently holding the drag, for the guide line */
   guide: number | null;
 };
 
+type Menu = {
+  x: number;
+  y: number;
+  clientX: number;
+  clientY: number;
+  time: number;
+  noteIndex: number | null;
+};
+
 /**
- * Zoomable, scrubbable timeline. Waveform lanes, a beat ruler and a note lane share one time axis.
- * Notes are squircles on scale-degree rows: drag to move in time or pitch, drag an edge to resize.
+ * Zoomable, scrubbable timeline. Waveform lanes, a treble staff, a beat ruler and a note lane share
+ * one time axis. Notes are squircles on scale-degree rows: drag to move in time or pitch, drag an
+ * edge to resize, shift-click for a range, ⌘/ctrl-click to add, right-click for a menu.
  */
 export function NoteEditor({
   notes,
@@ -101,9 +114,11 @@ export function NoteEditor({
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null); // horizontal (time)
   const vScrollRef = useRef<HTMLDivElement>(null); // vertical (rows)
+  const wrapRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ top: 0, height: 0, left: 0, width: 0 });
   const [drag, setDrag] = useState<Drag | null>(null);
   const [scrubbing, setScrubbing] = useState(false);
+  const [menu, setMenu] = useState<Menu | null>(null);
   const zoomAnchor = useRef<{ t: number; x: number } | null>(null);
 
   // ---- rows: scale tones of the key spanning the notes, with headroom
@@ -122,7 +137,6 @@ export function NoteEditor({
     (midi: number): number => {
       const i = rows.indexOf(midi);
       if (i >= 0) return i;
-      // chromatic: sit halfway between neighbouring scale tones
       let below = -1;
       for (let k = 0; k < rows.length; k++) if (rows[k] < midi) below = k;
       return below + 0.5;
@@ -145,17 +159,6 @@ export function NoteEditor({
     const rect = el.getBoundingClientRect();
     return Math.max(0, (clientX - rect.left + el.scrollLeft) / pxPerSec);
   };
-  const midiAtY = (clientY: number, chromatic: boolean) => {
-    const el = scrollRef.current;
-    if (!el) return rows[0];
-    const rect = el.getBoundingClientRect();
-    const pos =
-      rows.length -
-      1 -
-      (clientY - rect.top + el.scrollTop - notesTop) / ROW_H +
-      0.5;
-    return nearestPitch(pos, chromatic);
-  };
   const nearestPitch = (pos: number, chromatic: boolean) => {
     const lo = rows[0] - 1;
     const hi = rows[rows.length - 1] + 1;
@@ -167,6 +170,17 @@ export function NoteEditor({
       if (d < bestD) [bestD, best] = [d, m];
     }
     return best;
+  };
+  const midiAtY = (clientY: number, chromatic: boolean) => {
+    const el = scrollRef.current;
+    if (!el) return rows[0];
+    const rect = el.getBoundingClientRect();
+    const pos =
+      rows.length -
+      1 -
+      (clientY - rect.top + el.scrollTop - notesTop) / ROW_H +
+      0.5;
+    return nearestPitch(pos, chromatic);
   };
 
   // ---- what part of the grid is on screen
@@ -229,8 +243,57 @@ export function NoteEditor({
     onZoom(pxPerSec * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
   };
 
-  // ---- magnetic snapping (Final Cut style): pull to a grid line or a neighbour's edge only when
-  // close; free movement otherwise. Shift held bypasses it; N toggles it.
+  // ---- close the context menu on outside click or Escape
+  useEffect(() => {
+    if (!menu) return;
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent && e.key !== 'Escape') return;
+      if (
+        e instanceof MouseEvent &&
+        wrapRef.current
+          ?.querySelector(`.${styles.menu}`)
+          ?.contains(e.target as Node)
+      )
+        return;
+      setMenu(null);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [menu]);
+
+  // ---- selection: click, shift-click range, ⌘/ctrl-click toggle
+  const selectWith = (
+    e: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean },
+    i: number
+  ): number[] => {
+    let next: number[];
+    if (e.shiftKey && selected.length) {
+      const anchor = selected[selected.length - 1];
+      const [a, b] = anchor < i ? [anchor, i] : [i, anchor];
+      const range = Array.from({ length: b - a + 1 }, (_, k) => a + k);
+      next = [
+        ...selected.filter((s) => !range.includes(s)),
+        ...range.filter((s) => s !== i),
+        i,
+      ];
+    } else if (e.metaKey || e.ctrlKey) {
+      next = selected.includes(i)
+        ? selected.filter((s) => s !== i)
+        : [...selected, i];
+    } else {
+      next = selected.includes(i)
+        ? [...selected.filter((s) => s !== i), i]
+        : [i];
+    }
+    onSelect(next);
+    return next;
+  };
+
+  // ---- magnetic snapping (Final Cut style)
   const magnet = (
     t: number,
     extra: number[],
@@ -250,18 +313,27 @@ export function NoteEditor({
       ? { t: best, guide: best }
       : { t, guide: null };
   };
-  const neighbourEdges = (index: number) => {
-    const prev = notes[index - 1];
-    const next = notes[index + 1];
-    return {
-      prevEnd: prev ? prev.startTimeSeconds + prev.durationSeconds : null,
-      nextStart: next ? next.startTimeSeconds : null,
-    };
+  const neighbourEdges = (index: number, exclude: number[]) => {
+    let prevEnd: number | null = null;
+    let nextStart: number | null = null;
+    for (let k = index - 1; k >= 0; k--)
+      if (!exclude.includes(k)) {
+        prevEnd = notes[k].startTimeSeconds + notes[k].durationSeconds;
+        break;
+      }
+    for (let k = index + 1; k < notes.length; k++)
+      if (!exclude.includes(k)) {
+        nextStart = notes[k].startTimeSeconds;
+        break;
+      }
+    return { prevEnd, nextStart };
   };
 
-  // ---- note dragging
+  // ---- note dragging (moves every selected note together; resizing is one note)
   const beginDrag = (e: React.PointerEvent, index: number) => {
     e.stopPropagation();
+    if (e.button === 2) return;
+    setMenu(null);
     const n = notes[index];
     const rect = (e.currentTarget as SVGGElement).getBoundingClientRect();
     const local = e.clientX - rect.left;
@@ -271,15 +343,19 @@ export function NoteEditor({
         : rect.width > HANDLE * 3 && local > rect.width - HANDLE
         ? 'right'
         : 'move';
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
-    onSelect(index);
+    selectWith(e, index);
+    try {
+      (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    } catch {
+      /* synthetic events have no active pointer */
+    }
     setDrag({
       index,
       zone,
       x0: e.clientX,
       y0: e.clientY,
       orig: n,
-      preview: n,
+      preview: new Map([[index, n]]),
       moved: false,
       guide: null,
     });
@@ -291,8 +367,12 @@ export function NoteEditor({
     const dy = e.clientY - drag.y0;
     const o = drag.orig;
     const free = e.shiftKey;
-    const { prevEnd, nextStart } = neighbourEdges(drag.index);
-    let p: OTTNote = o;
+    const group =
+      drag.zone === 'move' && selected.includes(drag.index)
+        ? selected
+        : [drag.index];
+    const { prevEnd, nextStart } = neighbourEdges(drag.index, group);
+    const preview = new Map<number, OTTNote>();
     let guide: number | null = null;
     if (drag.zone === 'move') {
       const m = magnet(
@@ -304,10 +384,33 @@ export function NoteEditor({
         free
       );
       guide = m.guide;
+      const dt = m.t - o.startTimeSeconds;
       const pos = rowPos(o.pitchMidi) - dy / ROW_H;
-      const pitch =
-        Math.abs(dy) < ROW_H / 3 ? o.pitchMidi : nearestPitch(pos, e.altKey);
-      p = withPitch({ ...o, startTimeSeconds: Math.max(0, m.t) }, pitch);
+      const dPitch =
+        Math.abs(dy) < ROW_H / 3
+          ? 0
+          : nearestPitch(pos, e.altKey) - o.pitchMidi;
+      for (const i of group) {
+        const n = notes[i];
+        let pitch = n.pitchMidi + dPitch;
+        if (dPitch !== 0 && group.length > 1 && !e.altKey) {
+          // keep the whole group on scale tones when the dragged note moves by scale degrees
+          const tones = scaleTones(keyInfo, 20, 110);
+          const from = tones.indexOf(n.pitchMidi);
+          const steps =
+            tones.indexOf(o.pitchMidi + dPitch) - tones.indexOf(o.pitchMidi);
+          if (from >= 0 && tones.indexOf(o.pitchMidi) >= 0)
+            pitch =
+              tones[Math.max(0, Math.min(tones.length - 1, from + steps))];
+        }
+        preview.set(
+          i,
+          withPitch(
+            { ...n, startTimeSeconds: Math.max(0, n.startTimeSeconds + dt) },
+            pitch
+          )
+        );
+      }
     } else if (drag.zone === 'right') {
       const m = magnet(
         o.startTimeSeconds + Math.max(MIN_DUR, o.durationSeconds + dx),
@@ -315,10 +418,10 @@ export function NoteEditor({
         free
       );
       guide = m.guide;
-      p = {
+      preview.set(drag.index, {
         ...o,
         durationSeconds: Math.max(MIN_DUR, m.t - o.startTimeSeconds),
-      };
+      });
     } else {
       const end = o.startTimeSeconds + o.durationSeconds;
       const m = magnet(
@@ -328,11 +431,15 @@ export function NoteEditor({
       );
       guide = m.guide;
       const start = Math.max(0, Math.min(end - MIN_DUR, m.t));
-      p = { ...o, startTimeSeconds: start, durationSeconds: end - start };
+      preview.set(drag.index, {
+        ...o,
+        startTimeSeconds: start,
+        durationSeconds: end - start,
+      });
     }
     setDrag({
       ...drag,
-      preview: p,
+      preview,
       guide,
       moved: drag.moved || Math.abs(e.clientX - drag.x0) + Math.abs(dy) > 2,
     });
@@ -340,24 +447,32 @@ export function NoteEditor({
 
   const endDrag = () => {
     if (!drag) return;
-    const { preview, orig, index, moved } = drag;
+    const { preview, index, moved } = drag;
     setDrag(null);
-    if (
-      moved &&
-      (preview.startTimeSeconds !== orig.startTimeSeconds ||
-        preview.durationSeconds !== orig.durationSeconds ||
-        preview.pitchMidi !== orig.pitchMidi)
-    ) {
-      onChange(
-        notes.map((n, i) => (i === index ? preview : n)),
-        preview
+    if (!moved) return;
+    const changed = [...preview.entries()].some(([i, p]) => {
+      const n = notes[i];
+      return (
+        p.startTimeSeconds !== n.startTimeSeconds ||
+        p.durationSeconds !== n.durationSeconds ||
+        p.pitchMidi !== n.pitchMidi
       );
-    }
+    });
+    if (changed)
+      onChange(
+        notes.map((n, i) => preview.get(i) ?? n),
+        preview.get(index)
+      );
   };
 
   // ---- scrubbing on the ruler / empty lane
   const beginScrub = (e: React.PointerEvent) => {
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    if (e.button === 2) return;
+    try {
+      (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    } catch {
+      /* synthetic events have no active pointer */
+    }
     setScrubbing(true);
     onSeek(timeAt(e.clientX));
   };
@@ -365,11 +480,12 @@ export function NoteEditor({
     scrubbing && onSeek(timeAt(e.clientX));
   const endScrub = () => setScrubbing(false);
 
-  const addNoteAt = (e: React.MouseEvent) => {
-    const t0 = timeAt(e.clientX);
+  // ---- edits
+  const addNoteAt = (clientX: number, clientY: number, chromatic: boolean) => {
+    const t0 = timeAt(clientX);
     const start = snap ? snapTime(t0, tempo, gridBeats) : t0;
     const dur = beatSeconds(tempo) * (snap ? gridBeats : 0.5);
-    const pitch = midiAtY(e.clientY, e.altKey);
+    const pitch = midiAtY(clientY, chromatic);
     const n: OTTNote = {
       pitchMidi: pitch,
       noteName: midiToNoteName(pitch),
@@ -381,7 +497,7 @@ export function NoteEditor({
     onChange([...notes, n], n);
   };
 
-  // ---- split a note in two (a held note the model should have heard as two repeats)
+  /** Split a note in two: a held note the model should have heard as two repeats. */
   const splitNote = (index: number, at: number) => {
     const n = notes[index];
     if (!n) return;
@@ -403,62 +519,98 @@ export function NoteEditor({
     onChange(next, second);
   };
 
-  // ---- keyboard on the selected note
+  const deleteIndices = (idx: number[]) => {
+    if (!idx.length) return;
+    onChange(notes.filter((_, i) => !idx.includes(i)));
+    onSelect([]);
+  };
+
+  const merge = () => {
+    if (!canMerge(notes, selected)) return;
+    const { notes: next, merged } = mergeNotes(notes, selected);
+    onChange(next, merged);
+  };
+
+  const openMenu = (e: React.MouseEvent, noteIndex: number | null) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const wrap = wrapRef.current?.getBoundingClientRect();
+    if (!wrap) return;
+    if (noteIndex !== null && !selected.includes(noteIndex))
+      onSelect([noteIndex]);
+    setMenu({
+      x: e.clientX - wrap.left,
+      y: e.clientY - wrap.top,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      time: timeAt(e.clientX),
+      noteIndex,
+    });
+  };
+
+  // ---- keyboard
   const onKeyDown = (e: React.KeyboardEvent) => {
     if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
       onToggleSnap?.();
       return;
     }
-    const n = notes[selected];
+    if (e.key === 'Escape') {
+      setMenu(null);
+      onSelect([]);
+      return;
+    }
+    if (!selected.length) return;
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      deleteIndices(selected);
+      return;
+    }
+    if ((e.key === 'm' || e.key === 'M') && canMerge(notes, selected)) {
+      e.preventDefault();
+      merge();
+      return;
+    }
+    const anchor = selected[selected.length - 1];
+    const n = notes[anchor];
     if (!n) return;
-    if (e.key === 's' || e.key === 'S') {
+    if ((e.key === 's' || e.key === 'S') && selected.length === 1) {
       e.preventDefault();
       const inside =
         currentTime > n.startTimeSeconds + MIN_DUR &&
         currentTime < n.startTimeSeconds + n.durationSeconds - MIN_DUR;
       splitNote(
-        selected,
+        anchor,
         inside ? currentTime : n.startTimeSeconds + n.durationSeconds / 2
       );
       return;
     }
     const step = snap ? beatSeconds(tempo) * gridBeats : 0.01;
-    let next: OTTNote | null = null;
+    let patch: ((m: OTTNote) => OTTNote) | null = null;
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       const dir = e.key === 'ArrowUp' ? 1 : -1;
-      if (e.altKey) next = withPitch(n, n.pitchMidi + dir);
-      else {
-        const i = rows.indexOf(n.pitchMidi);
+      patch = (m) => {
+        if (e.altKey) return withPitch(m, m.pitchMidi + dir);
+        const tones = scaleTones(keyInfo, 20, 110);
+        const i = tones.indexOf(m.pitchMidi);
         const target =
           i >= 0
-            ? rows[Math.max(0, Math.min(rows.length - 1, i + dir))]
-            : nearestPitch(rowPos(n.pitchMidi) + dir * 0.5, false);
-        next = withPitch(n, target);
-      }
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      next = {
-        ...n,
-        startTimeSeconds: Math.max(
-          0,
-          n.startTimeSeconds + (e.key === 'ArrowRight' ? step : -step)
-        ),
+            ? tones[Math.max(0, Math.min(tones.length - 1, i + dir))]
+            : nearestPitch(rowPos(m.pitchMidi) + dir * 0.5, false);
+        return withPitch(m, target);
       };
-    } else if (e.key === 'Delete' || e.key === 'Backspace') {
-      e.preventDefault();
-      onChange(notes.filter((_, i) => i !== selected));
-      onSelect(-1);
-      return;
-    } else if (e.key === 'Escape') {
-      onSelect(-1);
-      return;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      const dt = e.key === 'ArrowRight' ? step : -step;
+      patch = (m) => ({
+        ...m,
+        startTimeSeconds: Math.max(0, m.startTimeSeconds + dt),
+      });
     }
-    if (next) {
+    if (patch) {
       e.preventDefault();
-      onChange(
-        notes.map((m, i) => (i === selected ? next : m)),
-        next
-      );
+      const fn = patch;
+      const next = notes.map((m, i) => (selected.includes(i) ? fn(m) : m));
+      onChange(next, next[anchor]);
     }
   };
 
@@ -492,10 +644,9 @@ export function NoteEditor({
       currentTime >= n.startTimeSeconds &&
       currentTime < n.startTimeSeconds + n.durationSeconds
   );
-  const shown = drag
-    ? notes.map((n, i) => (i === drag.index ? drag.preview : n))
-    : notes;
+  const shown = drag ? notes.map((n, i) => drag.preview.get(i) ?? n) : notes;
   const playheadX = x(currentTime);
+  const isSel = (i: number) => selected.includes(i);
 
   // notes inside the visible time window but above or below the visible rows
   const t0 = view.left / pxPerSec;
@@ -537,8 +688,165 @@ export function NoteEditor({
     });
   };
 
+  // ---- staff lane
+  const renderStaff = () => {
+    const sharps = keySignatureSharps(keyInfo);
+    const sc = SPACE / FONT_SPACE;
+    const bottom = lanesH + 42 + 4 * SPACE; // y of the bottom line (E4)
+    const yStep = (step: number) =>
+      bottom - (step - TREBLE_BOTTOM_STEP) * (SPACE / 2);
+    const G4 = 4 + 7 * 4;
+    const SHARP_STEPS = [38, 35, 39, 36, 33, 37, 34]; // F5 C5 G5 D5 A4 E5 B4
+    const FLAT_STEPS = [34, 37, 33, 36, 32, 35, 31]; // B4 E5 A4 D5 G4 C5 F4
+    const sigSteps =
+      sharps > 0 ? SHARP_STEPS.slice(0, sharps) : FLAT_STEPS.slice(0, -sharps);
+    const headW = GLYPHS.noteheadBlack.xMax * sc;
+    const stemW = 1.3;
+    // Bravura anchors: stemUpSE ≈ (1.18, 0.168) spaces, stemDownNW ≈ (0, −0.168)
+    const stemAnchorDy = 0.168 * SPACE;
+    const flagScale = 0.8;
+    const glyph = (
+      name: keyof typeof GLYPHS,
+      gx: number,
+      gy: number,
+      cls: string,
+      scale = sc
+    ) => (
+      <path
+        d={GLYPHS[name].d}
+        transform={`translate(${gx} ${gy}) scale(${scale})`}
+        className={cls}
+      />
+    );
+    return (
+      <g className={styles.staff}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <line
+            key={i}
+            x1={0}
+            x2={width}
+            y1={bottom - i * SPACE}
+            y2={bottom - i * SPACE}
+            className={styles.staffLine}
+          />
+        ))}
+        {gridLines
+          .filter((g) => g.kind === 'bar')
+          .map((g, i) => (
+            <line
+              key={i}
+              x1={x(g.t)}
+              x2={x(g.t)}
+              y1={bottom - 4 * SPACE}
+              y2={bottom}
+              className={styles.staffBar}
+            />
+          ))}
+        {glyph('gClef', 6, yStep(G4), styles.staffGlyph)}
+        {sigSteps.map((st, i) => (
+          <g key={i}>
+            {glyph(
+              sharps > 0 ? 'accidentalSharp' : 'accidentalFlat',
+              44 + i * 9,
+              yStep(st),
+              styles.staffGlyph
+            )}
+          </g>
+        ))}
+        {shown.map((n, i) => {
+          const sp = spell(n.pitchMidi, sharps);
+          const y = yStep(sp.step);
+          const nx = x(n.startTimeSeconds) + 1;
+          const v = nearestNoteValue(n.durationSeconds, tempo);
+          const head: keyof typeof GLYPHS =
+            v.beats >= 4
+              ? 'noteheadWhole'
+              : v.beats >= 2
+              ? 'noteheadHalf'
+              : 'noteheadBlack';
+          const stemUp = sp.step < 34; // below the middle line
+          const stemX = stemUp ? nx + headW - stemW / 2 : nx + stemW / 2;
+          const stemStart = stemUp ? y - stemAnchorDy : y + stemAnchorDy;
+          const stemEnd = stemUp ? y - 3.5 * SPACE : y + 3.5 * SPACE;
+          const flags =
+            v.beats === 0.25 ? 'flag16th' : v.beats < 1 ? 'flag8th' : null;
+          const acc = displayedAccidental(sp, sharps);
+          const dotted = [3, 1.5, 0.75].includes(v.beats);
+          const cls = [
+            styles.staffNote,
+            i === active ? styles.staffNoteActive : '',
+            isSel(i) ? styles.staffNoteSelected : '',
+          ].join(' ');
+          return (
+            <g
+              key={i}
+              className={cls}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                if (e.button !== 2) selectWith(e, i);
+              }}
+              onContextMenu={(e) => openMenu(e, i)}
+            >
+              {ledgerSteps(sp.step).map((ls) => (
+                <line
+                  key={ls}
+                  x1={nx - 3.5}
+                  x2={nx + headW + 3.5}
+                  y1={yStep(ls)}
+                  y2={yStep(ls)}
+                  className={styles.staffLine}
+                />
+              ))}
+              {acc &&
+                glyph(
+                  acc === '#'
+                    ? 'accidentalSharp'
+                    : acc === 'b'
+                    ? 'accidentalFlat'
+                    : 'accidentalNatural',
+                  nx - (acc === 'n' ? 8 : 10.5),
+                  y,
+                  styles.staffGlyph
+                )}
+              {glyph(head, nx, y, styles.staffHead)}
+              {v.beats < 4 && (
+                <line
+                  x1={stemX}
+                  x2={stemX}
+                  y1={stemStart}
+                  y2={stemEnd}
+                  className={styles.staffStem}
+                />
+              )}
+              {flags &&
+                glyph(
+                  stemUp ? `${flags}Up` : `${flags}Down`,
+                  stemUp ? stemX - stemW / 2 : stemX + stemW / 2,
+                  stemEnd,
+                  styles.staffHead,
+                  sc * flagScale
+                )}
+              {dotted &&
+                glyph(
+                  'augmentationDot',
+                  nx + headW + 0.5 * SPACE,
+                  sp.step % 2 === 0 ? y - SPACE / 2 : y,
+                  styles.staffHead
+                )}
+              <title>
+                {n.noteName} · {v.name}
+              </title>
+            </g>
+          );
+        })}
+      </g>
+    );
+  };
+
+  const mergeable = canMerge(notes, selected);
+
   return (
-    <div className={styles.editorWrap}>
+    <div className={styles.editorWrap} ref={wrapRef}>
       {above.length > 0 && (
         <button
           className={`${styles.edgeBanner} ${styles.edgeBannerTop}`}
@@ -555,13 +863,86 @@ export function NoteEditor({
           ▼ {summarize(below)} below
         </button>
       )}
+
+      {menu && (
+        <div
+          className={styles.menu}
+          style={{ left: menu.x, top: menu.y }}
+          role="menu"
+        >
+          {menu.noteIndex !== null && (
+            <button
+              role="menuitem"
+              className={styles.menuItem}
+              onClick={() => {
+                splitNote(menu.noteIndex as number, menu.time);
+                setMenu(null);
+              }}
+            >
+              Split here <kbd>S</kbd>
+            </button>
+          )}
+          {selected.length >= 2 && (
+            <button
+              role="menuitem"
+              className={styles.menuItem}
+              disabled={!mergeable}
+              title={
+                mergeable
+                  ? ''
+                  : 'Only consecutive notes of the same pitch can be merged'
+              }
+              onClick={() => {
+                merge();
+                setMenu(null);
+              }}
+            >
+              Merge {selected.length} notes <kbd>M</kbd>
+            </button>
+          )}
+          {menu.noteIndex === null && (
+            <button
+              role="menuitem"
+              className={styles.menuItem}
+              onClick={(e) => {
+                addNoteAt(menu.clientX, menu.clientY, e.altKey);
+                setMenu(null);
+              }}
+            >
+              Add note here
+            </button>
+          )}
+          {(menu.noteIndex !== null || selected.length > 0) && (
+            <button
+              role="menuitem"
+              className={`${styles.menuItem} ${styles.menuDanger}`}
+              onClick={() => {
+                deleteIndices(
+                  selected.length ? selected : [menu.noteIndex as number]
+                );
+                setMenu(null);
+              }}
+            >
+              Delete{' '}
+              {menu.noteIndex === null
+                ? selected.length > 1
+                  ? `${selected.length} selected notes`
+                  : 'selected note'
+                : selected.length > 1
+                ? `${selected.length} notes`
+                : 'note'}{' '}
+              <kbd>⌫</kbd>
+            </button>
+          )}
+        </div>
+      )}
+
       <div
         ref={vScrollRef}
         className={styles.editorGrid}
         style={{ height }}
         onScroll={measure}
       >
-        {/* gutter */}
         <div className={styles.gutter}>
           {lanes.map((l) => (
             <div
@@ -596,7 +977,6 @@ export function NoteEditor({
           ))}
         </div>
 
-        {/* scrolling time axis */}
         <div
           ref={scrollRef}
           className={styles.scroller}
@@ -643,13 +1023,12 @@ export function NoteEditor({
                 endScrub();
               }}
             >
-              {/* grid */}
               {gridLines.map((g, i) => (
                 <line
                   key={i}
                   x1={x(g.t)}
                   x2={x(g.t)}
-                  y1={lanesH}
+                  y1={rulerTop}
                   y2={height}
                   className={
                     g.kind === 'bar'
@@ -660,10 +1039,9 @@ export function NoteEditor({
                   }
                 />
               ))}
-              {/* ruler */}
               <rect
                 x={0}
-                y={lanesH}
+                y={rulerTop}
                 width={width}
                 height={RULER_H}
                 className={styles.ruler}
@@ -683,162 +1061,7 @@ export function NoteEditor({
                   {Math.floor(t / 60)}:{String(t % 60).padStart(2, '0')}
                 </text>
               ))}
-              {/* staff */}
-              {showStaff &&
-                (() => {
-                  const sharps = keySignatureSharps(keyInfo);
-                  const sc = SPACE / FONT_SPACE;
-                  const bottom = lanesH + 40 + 4 * SPACE; // y of the bottom line (E4)
-                  const yStep = (step: number) =>
-                    bottom - (step - TREBLE_BOTTOM_STEP) * (SPACE / 2);
-                  const G4 = 4 + 7 * 4;
-                  const SHARP_STEPS = [38, 35, 39, 36, 33, 37, 34]; // F5 C5 G5 D5 A4 E5 B4
-                  const FLAT_STEPS = [34, 37, 33, 36, 32, 35, 31]; // B4 E5 A4 D5 G4 C5 F4
-                  const sigSteps =
-                    sharps > 0
-                      ? SHARP_STEPS.slice(0, sharps)
-                      : FLAT_STEPS.slice(0, -sharps);
-                  const headW = GLYPHS.noteheadBlack.xMax * sc;
-                  const glyph = (
-                    name: keyof typeof GLYPHS,
-                    gx: number,
-                    gy: number,
-                    cls: string,
-                    scale = sc
-                  ) => (
-                    <path
-                      d={GLYPHS[name].d}
-                      transform={`translate(${gx} ${gy}) scale(${scale})`}
-                      className={cls}
-                    />
-                  );
-                  return (
-                    <g className={styles.staff}>
-                      {[0, 1, 2, 3, 4].map((i) => (
-                        <line
-                          key={i}
-                          x1={0}
-                          x2={width}
-                          y1={bottom - i * SPACE}
-                          y2={bottom - i * SPACE}
-                          className={styles.staffLine}
-                        />
-                      ))}
-                      {gridLines
-                        .filter((g) => g.kind === 'bar')
-                        .map((g, i) => (
-                          <line
-                            key={i}
-                            x1={x(g.t)}
-                            x2={x(g.t)}
-                            y1={bottom - 4 * SPACE}
-                            y2={bottom}
-                            className={styles.staffBar}
-                          />
-                        ))}
-                      {glyph('gClef', 6, yStep(G4), styles.staffGlyph)}
-                      {sigSteps.map((st, i) => (
-                        <g key={i}>
-                          {glyph(
-                            sharps > 0 ? 'accidentalSharp' : 'accidentalFlat',
-                            40 + i * 8,
-                            yStep(st),
-                            styles.staffGlyph
-                          )}
-                        </g>
-                      ))}
-                      {shown.map((n, i) => {
-                        const sp = spell(n.pitchMidi, sharps);
-                        const y = yStep(sp.step);
-                        const nx = x(n.startTimeSeconds) + 1;
-                        const v = nearestNoteValue(n.durationSeconds, tempo);
-                        const head: keyof typeof GLYPHS =
-                          v.beats >= 4
-                            ? 'noteheadWhole'
-                            : v.beats >= 2
-                            ? 'noteheadHalf'
-                            : 'noteheadBlack';
-                        const stemUp = sp.step < 34; // below the middle line
-                        const stemX = stemUp ? nx + headW - 0.6 : nx + 0.6;
-                        const stemEnd = stemUp
-                          ? y - 3.5 * SPACE
-                          : y + 3.5 * SPACE;
-                        const flags =
-                          v.beats === 0.25
-                            ? 'flag16th'
-                            : v.beats < 1
-                            ? 'flag8th'
-                            : null;
-                        const acc = displayedAccidental(sp, sharps);
-                        const cls = [
-                          styles.staffNote,
-                          i === active ? styles.staffNoteActive : '',
-                          i === selected ? styles.staffNoteSelected : '',
-                        ].join(' ');
-                        return (
-                          <g
-                            key={i}
-                            className={cls}
-                            onPointerDown={(e) => {
-                              e.stopPropagation();
-                              onSelect(i);
-                            }}
-                          >
-                            {ledgerSteps(sp.step).map((ls) => (
-                              <line
-                                key={ls}
-                                x1={nx - 3}
-                                x2={nx + headW + 3}
-                                y1={yStep(ls)}
-                                y2={yStep(ls)}
-                                className={styles.staffLine}
-                              />
-                            ))}
-                            {acc &&
-                              glyph(
-                                acc === '#'
-                                  ? 'accidentalSharp'
-                                  : acc === 'b'
-                                  ? 'accidentalFlat'
-                                  : 'accidentalNatural',
-                                nx - 8.5,
-                                y,
-                                styles.staffGlyph
-                              )}
-                            {glyph(head, nx, y, styles.staffHead)}
-                            {v.beats < 4 && (
-                              <line
-                                x1={stemX}
-                                x2={stemX}
-                                y1={y}
-                                y2={stemEnd}
-                                className={styles.staffStem}
-                              />
-                            )}
-                            {flags &&
-                              glyph(
-                                stemUp ? `${flags}Up` : `${flags}Down`,
-                                stemX,
-                                stemEnd,
-                                styles.staffHead
-                              )}
-                            {[3, 1.5, 0.75].includes(v.beats) &&
-                              glyph(
-                                'augmentationDot',
-                                nx + headW + 2.5,
-                                sp.step % 2 === 0 ? y - SPACE / 2 : y,
-                                styles.staffHead
-                              )}
-                            <title>
-                              {n.noteName} · {v.name}
-                            </title>
-                          </g>
-                        );
-                      })}
-                    </g>
-                  );
-                })()}
-              {/* row stripes + empty-area interactions */}
+              {showStaff && renderStaff()}
               {rows.map((m, i) => (
                 <rect
                   key={m}
@@ -854,13 +1077,16 @@ export function NoteEditor({
                       : styles.rowEven
                   }
                   onPointerDown={(e) => {
-                    onSelect(-1);
+                    if (e.button === 2) return;
+                    if (!e.shiftKey && !e.metaKey && !e.ctrlKey) onSelect([]);
                     beginScrub(e);
                   }}
-                  onDoubleClick={addNoteAt}
+                  onDoubleClick={(e) =>
+                    addNoteAt(e.clientX, e.clientY, e.altKey)
+                  }
+                  onContextMenu={(e) => openMenu(e, null)}
                 />
               ))}
-              {/* notes */}
               {shown.map((n, i) => {
                 const w = Math.max(6, x(n.durationSeconds));
                 const h = ROW_H - 4;
@@ -868,7 +1094,7 @@ export function NoteEditor({
                 const cls = [
                   styles.note,
                   i === active ? styles.noteActive : '',
-                  i === selected ? styles.noteSelected : '',
+                  isSel(i) ? styles.noteSelected : '',
                   chromatic ? styles.noteChromatic : '',
                 ].join(' ');
                 return (
@@ -880,11 +1106,7 @@ export function NoteEditor({
                     className={styles.noteGroup}
                     onPointerDown={(e) => beginDrag(e, i)}
                     onDoubleClick={(e) => e.stopPropagation()}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      splitNote(i, timeAt(e.clientX));
-                    }}
+                    onContextMenu={(e) => openMenu(e, i)}
                   >
                     <rect
                       width={w}
@@ -946,13 +1168,12 @@ export function NoteEditor({
                 <line
                   x1={x(drag.guide)}
                   x2={x(drag.guide)}
-                  y1={lanesH}
+                  y1={rulerTop}
                   y2={height}
                   className={styles.snapGuide}
                   pointerEvents="none"
                 />
               )}
-              {/* playhead */}
               <line
                 x1={playheadX}
                 x2={playheadX}
@@ -962,9 +1183,9 @@ export function NoteEditor({
                 pointerEvents="none"
               />
               <polygon
-                points={`${playheadX - 6},${lanesH} ${
+                points={`${playheadX - 6},${rulerTop} ${
                   playheadX + 6
-                },${lanesH} ${playheadX},${lanesH + 8}`}
+                },${rulerTop} ${playheadX},${rulerTop + 8}`}
                 className={styles.playheadCap}
                 pointerEvents="none"
               />

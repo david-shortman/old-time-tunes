@@ -1,5 +1,5 @@
 /* eslint-disable */
-export default {
+const config = {
   displayName: 'ott-react-playback',
   preset: '../../../jest.preset.cjs',
   testEnvironment: 'node',
@@ -9,3 +9,5 @@ export default {
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../../coverage/libs/react/playback',
 };
+
+export default config;
