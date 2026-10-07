@@ -1,0 +1,108 @@
+.root {
+  --accent: #2f6f9f;
+  --accent-2: #c2571a;
+  --ink: #1f2933;
+  --muted: #6b7785;
+  --panel: #ffffff;
+  --bg: #f4f1ea;
+  color: var(--ink);
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.title { font-size: 1.25rem; font-weight: 600; margin: 0; }
+.subtitle { color: var(--muted); font-size: 0.9rem; }
+
+.now { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; background: var(--panel); border-radius: 10px; padding: 16px; min-height: 180px; }
+.nowNote { font-size: 4.5rem; font-weight: 700; line-height: 1; color: var(--accent); }
+.nowFingering { font-size: 1.1rem; margin-top: 6px; }
+.nowIdle { color: var(--muted); font-style: italic; }
+.fingerboard { width: 120px; height: 165px; }
+.fbWood { fill: #4a2e1c; }
+.fbNut { fill: #e8dcc0; }
+.fbTape { stroke: rgba(255,255,255,0.18); stroke-width: 1; stroke-dasharray: 3 3; }
+.fbString { stroke: #cfcfcf; stroke-width: 1.5; }
+.fbStringActive { stroke: var(--accent-2); stroke-width: 3; }
+.fbStringLabel { fill: var(--muted); font-size: 11px; text-anchor: middle; }
+.fbDot { fill: var(--accent-2); stroke: #fff; stroke-width: 2; }
+.fbDotLabel { fill: #fff; font-size: 11px; font-weight: 700; text-anchor: middle; }
+
+.timeline { background: var(--panel); border-radius: 10px; padding: 12px 12px 6px; display: grid; gap: 6px; }
+.waveCanvas { display: block; }
+.times { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--muted); padding: 6px 4px 0; }
+.hintInline { font-style: italic; text-align: center; flex: 1; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(0,0,0,0.12); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-size: 0.9rem; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btnPrimary { background: var(--accent); color: #fff; border-color: var(--accent); padding: 12px; }
+.btnPrimary:hover { filter: brightness(1.1); }
+.btnActive { background: var(--ink); color: #fff; border-color: var(--ink); }
+.group { display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.05); border-radius: 999px; padding: 3px; }
+.groupLabel { font-size: 0.75rem; color: var(--muted); padding: 0 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+.chip { border: 0; background: transparent; border-radius: 999px; padding: 6px 10px; font-size: 0.85rem; cursor: pointer; color: var(--ink); }
+.chipOn { background: var(--panel); box-shadow: 0 1px 2px rgba(0,0,0,0.12); }
+
+.editor { background: var(--panel); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; }
+.editorHead { display: flex; justify-content: space-between; align-items: center; }
+.editorHead h3 { margin: 0; font-size: 1rem; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.field { display: grid; gap: 4px; font-size: 0.8rem; color: var(--muted); }
+.field input { font: inherit; color: var(--ink); padding: 6px 8px; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; }
+.hint { color: var(--muted); font-size: 0.85rem; font-style: italic; margin: 0; }
+
+@media (max-width: 600px) {
+  .now { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .nowNote { font-size: 3.5rem; }
+}
+
+/* ---- toolbar */
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.tool { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.tool select, .tool input { font: inherit; text-transform: none; letter-spacing: 0; color: var(--ink); padding: 5px 8px; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; background: var(--panel); }
+.tool input { width: 72px; }
+.btnSmall { font: inherit; font-size: 0.8rem; border: 1px solid rgba(0,0,0,0.12); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 5px 10px; cursor: pointer; }
+.btnSmall:hover { border-color: var(--accent); }
+.stepper { display: inline-flex; gap: 4px; align-items: center; }
+.stepper input { width: 64px; }
+
+/* ---- editor grid */
+.editorGrid { display: grid; grid-template-columns: 76px 1fr; max-height: 560px; overflow-y: auto; border-radius: 6px; background: rgba(0,0,0,0.03); }
+.gutter { display: flex; flex-direction: column; font-size: 0.72rem; color: var(--muted); border-right: 1px solid rgba(0,0,0,0.08); background: var(--panel); position: sticky; left: 0; z-index: 1; }
+.gutterLane { display: flex; align-items: center; padding-left: 8px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.gutterRuler { display: flex; align-items: center; padding-left: 8px; font-weight: 600; color: var(--ink); border-bottom: 1px solid rgba(0,0,0,0.08); }
+.gutterRow { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border-bottom: 1px solid rgba(0,0,0,0.04); color: var(--ink); }
+.gutterRowTonic { background: rgba(47,111,159,0.10); font-weight: 600; }
+.gutterDegree { color: var(--muted); font-variant-numeric: tabular-nums; }
+.scroller { overflow-x: auto; overflow-y: hidden; outline: none; }
+.scroller:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.gridBar { stroke: rgba(0,0,0,0.28); stroke-width: 1.2; }
+.gridBeat { stroke: rgba(0,0,0,0.14); stroke-width: 1; }
+.gridSub { stroke: rgba(0,0,0,0.06); stroke-width: 1; }
+.ruler { fill: rgba(0,0,0,0.06); cursor: ew-resize; }
+.rulerText { font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.rowEven { fill: transparent; }
+.rowOdd { fill: rgba(0,0,0,0.025); }
+.rowTonic { fill: rgba(47,111,159,0.07); }
+.noteGroup { cursor: grab; }
+.noteGroup:active { cursor: grabbing; }
+.note { fill: var(--accent); stroke: rgba(0,0,0,0.15); stroke-width: 1; }
+.noteActive { fill: var(--accent-2); }
+.noteChromatic { stroke: var(--ink); stroke-dasharray: 3 2; }
+.noteSelected { stroke: #d6336c; stroke-width: 2.5; stroke-dasharray: none; }
+.handle { fill: rgba(255,255,255,0.0); cursor: ew-resize; }
+.noteGroup:hover .handle { fill: rgba(255,255,255,0.35); }
+.noteText { font-size: 11px; fill: #fff; text-anchor: middle; font-weight: 600; }
+.playhead { stroke: #d6336c; stroke-width: 1.5; }
+.playheadCap { fill: #d6336c; }
+
+/* ---- edge banners for notes scrolled out of vertical view */
+.editorWrap { position: relative; }
+.edgeBanner { position: absolute; left: 50%; transform: translateX(-50%); z-index: 2; font: inherit; font-size: 0.78rem; font-weight: 600; color: #fff; background: var(--accent-2); border: 0; border-radius: 999px; padding: 5px 12px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); opacity: 0.92; }
+.edgeBanner:hover { opacity: 1; }
+.edgeBannerTop { top: 6px; }
+.edgeBannerBottom { bottom: 6px; }

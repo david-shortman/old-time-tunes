@@ -1,0 +1,3098 @@
+[
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 0.163,
+  "durationSeconds": 0.209,
+  "amplitude": 0.268,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 0.372,
+  "durationSeconds": 0.104,
+  "amplitude": 0.733,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 0.476,
+  "durationSeconds": 0.221,
+  "amplitude": 0.518,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 1.579,
+  "durationSeconds": 0.081,
+  "amplitude": 0.39,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 1.66,
+  "durationSeconds": 0.128,
+  "amplitude": 0.37,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 1.974,
+  "durationSeconds": 0.199,
+  "amplitude": 0.426,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 2.172,
+  "durationSeconds": 0.163,
+  "amplitude": 0.361,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 2.358,
+  "durationSeconds": 0.081,
+  "amplitude": 0.367,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "B4",
+  "startTimeSeconds": 2.497,
+  "durationSeconds": 0.104,
+  "amplitude": 0.452,
+  "pitchBends": [],
+  "pitchMidi": 71
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 2.799,
+  "durationSeconds": 0.139,
+  "amplitude": 0.559,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 2.939,
+  "durationSeconds": 0.128,
+  "amplitude": 0.41,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "D4",
+  "startTimeSeconds": 3.078,
+  "durationSeconds": 0.093,
+  "amplitude": 0.288,
+  "pitchBends": [],
+  "pitchMidi": 62
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 3.171,
+  "durationSeconds": 0.128,
+  "amplitude": 0.507,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 3.299,
+  "durationSeconds": 0.104,
+  "amplitude": 0.348,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 3.542,
+  "durationSeconds": 0.093,
+  "amplitude": 0.405,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "C5",
+  "startTimeSeconds": 3.879,
+  "durationSeconds": 0.094,
+  "amplitude": 0.504,
+  "pitchBends": [],
+  "pitchMidi": 72
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 3.996,
+  "durationSeconds": 0.232,
+  "amplitude": 0.601,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 4.229,
+  "durationSeconds": 0.093,
+  "amplitude": 0.433,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 4.6,
+  "durationSeconds": 0.104,
+  "amplitude": 0.47,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 4.705,
+  "durationSeconds": 0.151,
+  "amplitude": 0.471,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 4.856,
+  "durationSeconds": 0.186,
+  "amplitude": 0.325,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 5.053,
+  "durationSeconds": 0.128,
+  "amplitude": 0.587,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 5.181,
+  "durationSeconds": 0.081,
+  "amplitude": 0.501,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 5.262,
+  "durationSeconds": 0.104,
+  "amplitude": 0.404,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "F#4",
+  "startTimeSeconds": 5.436,
+  "durationSeconds": 0.197,
+  "amplitude": 0.634,
+  "pitchBends": [],
+  "pitchMidi": 66
+ },
+ {
+  "noteName": "D#4",
+  "startTimeSeconds": 5.657,
+  "durationSeconds": 0.035,
+  "amplitude": 0.351,
+  "pitchBends": [],
+  "pitchMidi": 63
+ },
+ {
+  "noteName": "G#4",
+  "startTimeSeconds": 5.691,
+  "durationSeconds": 0.07,
+  "amplitude": 0.353,
+  "pitchBends": [],
+  "pitchMidi": 68
+ },
+ {
+  "noteName": "D7",
+  "startTimeSeconds": 5.773,
+  "durationSeconds": 0.187,
+  "amplitude": 0.298,
+  "pitchBends": [],
+  "pitchMidi": 98
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 6.215,
+  "durationSeconds": 0.128,
+  "amplitude": 0.402,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 6.343,
+  "durationSeconds": 0.07,
+  "amplitude": 0.328,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 6.622,
+  "durationSeconds": 0.116,
+  "amplitude": 0.582,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 6.738,
+  "durationSeconds": 0.139,
+  "amplitude": 0.381,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "D4",
+  "startTimeSeconds": 6.877,
+  "durationSeconds": 0.093,
+  "amplitude": 0.335,
+  "pitchBends": [],
+  "pitchMidi": 62
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 6.993,
+  "durationSeconds": 0.081,
+  "amplitude": 0.547,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 7.086,
+  "durationSeconds": 0.151,
+  "amplitude": 0.508,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 7.318,
+  "durationSeconds": 0.093,
+  "amplitude": 0.413,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 7.585,
+  "durationSeconds": 0.058,
+  "amplitude": 0.333,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "C5",
+  "startTimeSeconds": 7.643,
+  "durationSeconds": 0.128,
+  "amplitude": 0.591,
+  "pitchBends": [],
+  "pitchMidi": 72
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 7.771,
+  "durationSeconds": 0.175,
+  "amplitude": 0.432,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 7.993,
+  "durationSeconds": 0.174,
+  "amplitude": 0.49,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 8.167,
+  "durationSeconds": 0.07,
+  "amplitude": 0.368,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 8.248,
+  "durationSeconds": 0.128,
+  "amplitude": 0.575,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 8.515,
+  "durationSeconds": 0.081,
+  "amplitude": 0.392,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 8.597,
+  "durationSeconds": 0.081,
+  "amplitude": 0.374,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 8.759,
+  "durationSeconds": 0.128,
+  "amplitude": 0.413,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 8.933,
+  "durationSeconds": 0.116,
+  "amplitude": 0.502,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 9.212,
+  "durationSeconds": 0.163,
+  "amplitude": 0.335,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 9.386,
+  "durationSeconds": 0.07,
+  "amplitude": 0.383,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 9.456,
+  "durationSeconds": 0.348,
+  "amplitude": 0.525,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 10.363,
+  "durationSeconds": 0.104,
+  "amplitude": 0.419,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 10.49,
+  "durationSeconds": 0.081,
+  "amplitude": 0.437,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 10.722,
+  "durationSeconds": 0.104,
+  "amplitude": 0.555,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 10.827,
+  "durationSeconds": 0.232,
+  "amplitude": 0.353,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 11.059,
+  "durationSeconds": 0.081,
+  "amplitude": 0.45,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 11.164,
+  "durationSeconds": 0.186,
+  "amplitude": 0.586,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 11.535,
+  "durationSeconds": 0.313,
+  "amplitude": 0.486,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 11.849,
+  "durationSeconds": 0.083,
+  "amplitude": 0.531,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "D4",
+  "startTimeSeconds": 12.024,
+  "durationSeconds": 0.093,
+  "amplitude": 0.263,
+  "pitchBends": [],
+  "pitchMidi": 62
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 12.268,
+  "durationSeconds": 0.151,
+  "amplitude": 0.434,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F5",
+  "startTimeSeconds": 12.43,
+  "durationSeconds": 0.07,
+  "amplitude": 0.368,
+  "pitchBends": [],
+  "pitchMidi": 77
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 12.709,
+  "durationSeconds": 0.104,
+  "amplitude": 0.474,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 12.814,
+  "durationSeconds": 0.081,
+  "amplitude": 0.425,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "F#4",
+  "startTimeSeconds": 12.941,
+  "durationSeconds": 0.209,
+  "amplitude": 0.461,
+  "pitchBends": [],
+  "pitchMidi": 66
+ },
+ {
+  "noteName": "G#4",
+  "startTimeSeconds": 13.197,
+  "durationSeconds": 0.174,
+  "amplitude": 0.381,
+  "pitchBends": [],
+  "pitchMidi": 68
+ },
+ {
+  "noteName": "D#4",
+  "startTimeSeconds": 13.371,
+  "durationSeconds": 0.244,
+  "amplitude": 0.417,
+  "pitchBends": [],
+  "pitchMidi": 63
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 13.661,
+  "durationSeconds": 0.197,
+  "amplitude": 0.467,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 13.858,
+  "durationSeconds": 0.094,
+  "amplitude": 0.384,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 13.999,
+  "durationSeconds": 0.093,
+  "amplitude": 0.409,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 14.103,
+  "durationSeconds": 0.197,
+  "amplitude": 0.516,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 14.452,
+  "durationSeconds": 0.093,
+  "amplitude": 0.591,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 14.545,
+  "durationSeconds": 0.232,
+  "amplitude": 0.578,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 14.777,
+  "durationSeconds": 0.128,
+  "amplitude": 0.521,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 15.021,
+  "durationSeconds": 0.07,
+  "amplitude": 0.334,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "C5",
+  "startTimeSeconds": 15.125,
+  "durationSeconds": 0.116,
+  "amplitude": 0.594,
+  "pitchBends": [],
+  "pitchMidi": 72
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 15.264,
+  "durationSeconds": 0.221,
+  "amplitude": 0.489,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 15.485,
+  "durationSeconds": 0.197,
+  "amplitude": 0.581,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 15.729,
+  "durationSeconds": 0.187,
+  "amplitude": 0.419,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 15.916,
+  "durationSeconds": 0.116,
+  "amplitude": 0.334,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 16.032,
+  "durationSeconds": 0.116,
+  "amplitude": 0.496,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 16.148,
+  "durationSeconds": 0.116,
+  "amplitude": 0.296,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 16.264,
+  "durationSeconds": 0.093,
+  "amplitude": 0.423,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 16.38,
+  "durationSeconds": 0.104,
+  "amplitude": 0.51,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 16.485,
+  "durationSeconds": 0.116,
+  "amplitude": 0.556,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 16.613,
+  "durationSeconds": 0.313,
+  "amplitude": 0.402,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 16.949,
+  "durationSeconds": 0.337,
+  "amplitude": 0.606,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 17.332,
+  "durationSeconds": 0.081,
+  "amplitude": 0.317,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 17.448,
+  "durationSeconds": 0.081,
+  "amplitude": 0.719,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 17.53,
+  "durationSeconds": 0.093,
+  "amplitude": 0.28,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 17.623,
+  "durationSeconds": 0.104,
+  "amplitude": 0.302,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 17.75,
+  "durationSeconds": 0.128,
+  "amplitude": 0.682,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 17.878,
+  "durationSeconds": 0.094,
+  "amplitude": 0.613,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 18.007,
+  "durationSeconds": 0.116,
+  "amplitude": 0.353,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 18.228,
+  "durationSeconds": 0.104,
+  "amplitude": 0.309,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 18.332,
+  "durationSeconds": 0.081,
+  "amplitude": 0.487,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 18.448,
+  "durationSeconds": 0.186,
+  "amplitude": 0.378,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "E7",
+  "startTimeSeconds": 18.634,
+  "durationSeconds": 0.058,
+  "amplitude": 0.448,
+  "pitchBends": [],
+  "pitchMidi": 100
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 18.692,
+  "durationSeconds": 0.128,
+  "amplitude": 0.485,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 18.901,
+  "durationSeconds": 0.104,
+  "amplitude": 0.487,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 19.005,
+  "durationSeconds": 0.116,
+  "amplitude": 0.617,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 19.133,
+  "durationSeconds": 0.093,
+  "amplitude": 0.472,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 19.226,
+  "durationSeconds": 0.128,
+  "amplitude": 0.649,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 19.377,
+  "durationSeconds": 0.093,
+  "amplitude": 0.296,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 19.47,
+  "durationSeconds": 0.081,
+  "amplitude": 0.34,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 19.586,
+  "durationSeconds": 0.116,
+  "amplitude": 0.617,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 19.702,
+  "durationSeconds": 0.104,
+  "amplitude": 0.624,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 19.83,
+  "durationSeconds": 0.187,
+  "amplitude": 0.446,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 20.017,
+  "durationSeconds": 0.128,
+  "amplitude": 0.319,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 20.145,
+  "durationSeconds": 0.104,
+  "amplitude": 0.552,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 20.284,
+  "durationSeconds": 0.058,
+  "amplitude": 0.404,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 20.354,
+  "durationSeconds": 0.093,
+  "amplitude": 0.37,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 20.528,
+  "durationSeconds": 0.07,
+  "amplitude": 0.473,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "B4",
+  "startTimeSeconds": 20.597,
+  "durationSeconds": 0.07,
+  "amplitude": 0.451,
+  "pitchBends": [],
+  "pitchMidi": 71
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 20.725,
+  "durationSeconds": 0.244,
+  "amplitude": 0.494,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 20.969,
+  "durationSeconds": 0.186,
+  "amplitude": 0.532,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 21.201,
+  "durationSeconds": 0.093,
+  "amplitude": 0.377,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 21.294,
+  "durationSeconds": 0.128,
+  "amplitude": 0.426,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 21.433,
+  "durationSeconds": 0.116,
+  "amplitude": 0.679,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 21.549,
+  "durationSeconds": 0.093,
+  "amplitude": 0.548,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 21.665,
+  "durationSeconds": 0.116,
+  "amplitude": 0.377,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "A#5",
+  "startTimeSeconds": 21.782,
+  "durationSeconds": 0.071,
+  "amplitude": 0.482,
+  "pitchBends": [],
+  "pitchMidi": 82
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 22.003,
+  "durationSeconds": 0.081,
+  "amplitude": 0.479,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 22.108,
+  "durationSeconds": 0.104,
+  "amplitude": 0.461,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 22.34,
+  "durationSeconds": 0.139,
+  "amplitude": 0.506,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 22.491,
+  "durationSeconds": 0.174,
+  "amplitude": 0.4,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 22.665,
+  "durationSeconds": 0.104,
+  "amplitude": 0.574,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 22.793,
+  "durationSeconds": 0.128,
+  "amplitude": 0.804,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 22.921,
+  "durationSeconds": 0.023,
+  "amplitude": 0.583,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 22.944,
+  "durationSeconds": 0.081,
+  "amplitude": 0.593,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 23.025,
+  "durationSeconds": 0.116,
+  "amplitude": 0.495,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 23.257,
+  "durationSeconds": 0.209,
+  "amplitude": 0.543,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 23.489,
+  "durationSeconds": 0.128,
+  "amplitude": 0.306,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 23.71,
+  "durationSeconds": 0.141,
+  "amplitude": 0.493,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 23.932,
+  "durationSeconds": 0.244,
+  "amplitude": 0.315,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 24.176,
+  "durationSeconds": 0.209,
+  "amplitude": 0.706,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 24.385,
+  "durationSeconds": 0.139,
+  "amplitude": 0.436,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 24.733,
+  "durationSeconds": 0.174,
+  "amplitude": 0.346,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 25.093,
+  "durationSeconds": 0.116,
+  "amplitude": 0.687,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 25.209,
+  "durationSeconds": 0.081,
+  "amplitude": 0.52,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 25.314,
+  "durationSeconds": 0.139,
+  "amplitude": 0.415,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 25.534,
+  "durationSeconds": 0.163,
+  "amplitude": 0.336,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 25.697,
+  "durationSeconds": 0.081,
+  "amplitude": 0.436,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 25.801,
+  "durationSeconds": 0.117,
+  "amplitude": 0.354,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 26.023,
+  "durationSeconds": 0.093,
+  "amplitude": 0.451,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 26.116,
+  "durationSeconds": 0.07,
+  "amplitude": 0.272,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 26.244,
+  "durationSeconds": 0.116,
+  "amplitude": 0.486,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 26.36,
+  "durationSeconds": 0.116,
+  "amplitude": 0.55,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 26.499,
+  "durationSeconds": 0.081,
+  "amplitude": 0.448,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 26.58,
+  "durationSeconds": 0.139,
+  "amplitude": 0.6,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 26.72,
+  "durationSeconds": 0.221,
+  "amplitude": 0.36,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 26.94,
+  "durationSeconds": 0.116,
+  "amplitude": 0.737,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 27.056,
+  "durationSeconds": 0.081,
+  "amplitude": 0.478,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 27.172,
+  "durationSeconds": 0.139,
+  "amplitude": 0.405,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "A#5",
+  "startTimeSeconds": 27.312,
+  "durationSeconds": 0.07,
+  "amplitude": 0.402,
+  "pitchBends": [],
+  "pitchMidi": 82
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 27.381,
+  "durationSeconds": 0.139,
+  "amplitude": 0.417,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 27.521,
+  "durationSeconds": 0.093,
+  "amplitude": 0.604,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 27.648,
+  "durationSeconds": 0.081,
+  "amplitude": 0.407,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 27.73,
+  "durationSeconds": 0.106,
+  "amplitude": 0.44,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 27.835,
+  "durationSeconds": 0.116,
+  "amplitude": 0.376,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "B4",
+  "startTimeSeconds": 27.986,
+  "durationSeconds": 0.07,
+  "amplitude": 0.429,
+  "pitchBends": [],
+  "pitchMidi": 71
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 28.079,
+  "durationSeconds": 0.244,
+  "amplitude": 0.495,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 28.323,
+  "durationSeconds": 0.186,
+  "amplitude": 0.503,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 28.555,
+  "durationSeconds": 0.104,
+  "amplitude": 0.356,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 28.66,
+  "durationSeconds": 0.093,
+  "amplitude": 0.393,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 28.753,
+  "durationSeconds": 0.151,
+  "amplitude": 0.711,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 28.904,
+  "durationSeconds": 0.081,
+  "amplitude": 0.495,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A#5",
+  "startTimeSeconds": 29.113,
+  "durationSeconds": 0.093,
+  "amplitude": 0.404,
+  "pitchBends": [],
+  "pitchMidi": 82
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 29.252,
+  "durationSeconds": 0.104,
+  "amplitude": 0.322,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 29.356,
+  "durationSeconds": 0.093,
+  "amplitude": 0.49,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 29.472,
+  "durationSeconds": 0.116,
+  "amplitude": 0.414,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "E7",
+  "startTimeSeconds": 29.589,
+  "durationSeconds": 0.128,
+  "amplitude": 0.365,
+  "pitchBends": [],
+  "pitchMidi": 100
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 29.716,
+  "durationSeconds": 0.129,
+  "amplitude": 0.545,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 29.869,
+  "durationSeconds": 0.104,
+  "amplitude": 0.424,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 29.973,
+  "durationSeconds": 0.163,
+  "amplitude": 0.706,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 30.194,
+  "durationSeconds": 0.081,
+  "amplitude": 0.769,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 30.275,
+  "durationSeconds": 0.139,
+  "amplitude": 0.584,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 30.449,
+  "durationSeconds": 0.07,
+  "amplitude": 0.378,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 30.53,
+  "durationSeconds": 0.058,
+  "amplitude": 0.34,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 30.588,
+  "durationSeconds": 0.232,
+  "amplitude": 0.674,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 31.053,
+  "durationSeconds": 0.151,
+  "amplitude": 0.496,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 31.204,
+  "durationSeconds": 0.093,
+  "amplitude": 0.585,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 31.297,
+  "durationSeconds": 0.163,
+  "amplitude": 0.289,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 31.656,
+  "durationSeconds": 0.245,
+  "amplitude": 0.501,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 32.111,
+  "durationSeconds": 0.244,
+  "amplitude": 0.409,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 32.378,
+  "durationSeconds": 0.116,
+  "amplitude": 0.364,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 32.494,
+  "durationSeconds": 0.139,
+  "amplitude": 0.539,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 32.656,
+  "durationSeconds": 0.116,
+  "amplitude": 0.422,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 32.912,
+  "durationSeconds": 0.058,
+  "amplitude": 0.457,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 32.97,
+  "durationSeconds": 0.116,
+  "amplitude": 0.462,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 33.132,
+  "durationSeconds": 0.104,
+  "amplitude": 0.46,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 33.353,
+  "durationSeconds": 0.209,
+  "amplitude": 0.454,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 33.585,
+  "durationSeconds": 0.233,
+  "amplitude": 0.53,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 33.818,
+  "durationSeconds": 0.186,
+  "amplitude": 0.542,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "C#4",
+  "startTimeSeconds": 34.004,
+  "durationSeconds": 0.186,
+  "amplitude": 0.341,
+  "pitchBends": [],
+  "pitchMidi": 61
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 34.26,
+  "durationSeconds": 0.197,
+  "amplitude": 0.413,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 34.724,
+  "durationSeconds": 0.104,
+  "amplitude": 0.524,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 34.829,
+  "durationSeconds": 0.093,
+  "amplitude": 0.467,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "G#3",
+  "startTimeSeconds": 35.014,
+  "durationSeconds": 0.093,
+  "amplitude": 0.353,
+  "pitchBends": [],
+  "pitchMidi": 56
+ },
+ {
+  "noteName": "E4",
+  "startTimeSeconds": 35.177,
+  "durationSeconds": 0.081,
+  "amplitude": 0.283,
+  "pitchBends": [],
+  "pitchMidi": 64
+ },
+ {
+  "noteName": "F#4",
+  "startTimeSeconds": 35.293,
+  "durationSeconds": 0.093,
+  "amplitude": 0.367,
+  "pitchBends": [],
+  "pitchMidi": 66
+ },
+ {
+  "noteName": "E4",
+  "startTimeSeconds": 35.386,
+  "durationSeconds": 0.244,
+  "amplitude": 0.509,
+  "pitchBends": [],
+  "pitchMidi": 64
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 35.63,
+  "durationSeconds": 0.257,
+  "amplitude": 0.478,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D4",
+  "startTimeSeconds": 35.886,
+  "durationSeconds": 0.07,
+  "amplitude": 0.37,
+  "pitchBends": [],
+  "pitchMidi": 62
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 36.095,
+  "durationSeconds": 0.139,
+  "amplitude": 0.521,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 36.78,
+  "durationSeconds": 0.093,
+  "amplitude": 0.404,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 37.233,
+  "durationSeconds": 0.174,
+  "amplitude": 0.458,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 37.454,
+  "durationSeconds": 0.221,
+  "amplitude": 0.566,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 37.709,
+  "durationSeconds": 0.199,
+  "amplitude": 0.464,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 37.943,
+  "durationSeconds": 0.093,
+  "amplitude": 0.352,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 38.059,
+  "durationSeconds": 0.093,
+  "amplitude": 0.334,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 38.361,
+  "durationSeconds": 0.116,
+  "amplitude": 0.38,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 38.477,
+  "durationSeconds": 0.081,
+  "amplitude": 0.389,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 38.593,
+  "durationSeconds": 0.174,
+  "amplitude": 0.359,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 38.895,
+  "durationSeconds": 0.209,
+  "amplitude": 0.666,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 39.104,
+  "durationSeconds": 0.058,
+  "amplitude": 0.335,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 39.162,
+  "durationSeconds": 0.104,
+  "amplitude": 0.543,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "B4",
+  "startTimeSeconds": 39.44,
+  "durationSeconds": 0.093,
+  "amplitude": 0.457,
+  "pitchBends": [],
+  "pitchMidi": 71
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 39.533,
+  "durationSeconds": 0.139,
+  "amplitude": 0.313,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 39.836,
+  "durationSeconds": 0.163,
+  "amplitude": 0.401,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 40.277,
+  "durationSeconds": 0.139,
+  "amplitude": 0.494,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 40.475,
+  "durationSeconds": 0.07,
+  "amplitude": 0.336,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 40.603,
+  "durationSeconds": 0.093,
+  "amplitude": 0.424,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 40.695,
+  "durationSeconds": 0.151,
+  "amplitude": 0.378,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 40.928,
+  "durationSeconds": 0.267,
+  "amplitude": 0.479,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 41.195,
+  "durationSeconds": 0.174,
+  "amplitude": 0.505,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "D4",
+  "startTimeSeconds": 41.427,
+  "durationSeconds": 0.151,
+  "amplitude": 0.345,
+  "pitchBends": [],
+  "pitchMidi": 62
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 41.659,
+  "durationSeconds": 0.129,
+  "amplitude": 0.389,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 41.962,
+  "durationSeconds": 0.093,
+  "amplitude": 0.298,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 42.113,
+  "durationSeconds": 0.186,
+  "amplitude": 0.393,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "E4",
+  "startTimeSeconds": 42.787,
+  "durationSeconds": 0.255,
+  "amplitude": 0.437,
+  "pitchBends": [],
+  "pitchMidi": 64
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 43.042,
+  "durationSeconds": 0.104,
+  "amplitude": 0.447,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 43.146,
+  "durationSeconds": 0.116,
+  "amplitude": 0.284,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 43.483,
+  "durationSeconds": 0.222,
+  "amplitude": 0.462,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D4",
+  "startTimeSeconds": 43.74,
+  "durationSeconds": 0.093,
+  "amplitude": 0.297,
+  "pitchBends": [],
+  "pitchMidi": 62
+ },
+ {
+  "noteName": "F#4",
+  "startTimeSeconds": 43.937,
+  "durationSeconds": 0.116,
+  "amplitude": 0.431,
+  "pitchBends": [],
+  "pitchMidi": 66
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 44.146,
+  "durationSeconds": 0.104,
+  "amplitude": 0.465,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 44.367,
+  "durationSeconds": 0.081,
+  "amplitude": 0.272,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "C5",
+  "startTimeSeconds": 44.483,
+  "durationSeconds": 0.104,
+  "amplitude": 0.515,
+  "pitchBends": [],
+  "pitchMidi": 72
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 44.622,
+  "durationSeconds": 0.186,
+  "amplitude": 0.613,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 44.854,
+  "durationSeconds": 0.209,
+  "amplitude": 0.638,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 45.11,
+  "durationSeconds": 0.174,
+  "amplitude": 0.345,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 45.319,
+  "durationSeconds": 0.093,
+  "amplitude": 0.326,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 45.435,
+  "durationSeconds": 0.07,
+  "amplitude": 0.307,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 45.75,
+  "durationSeconds": 0.104,
+  "amplitude": 0.412,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 45.854,
+  "durationSeconds": 0.116,
+  "amplitude": 0.563,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 45.993,
+  "durationSeconds": 0.313,
+  "amplitude": 0.424,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 46.307,
+  "durationSeconds": 0.104,
+  "amplitude": 0.627,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 46.411,
+  "durationSeconds": 0.093,
+  "amplitude": 0.762,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 46.504,
+  "durationSeconds": 0.116,
+  "amplitude": 0.467,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 46.713,
+  "durationSeconds": 0.081,
+  "amplitude": 0.381,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 46.795,
+  "durationSeconds": 0.081,
+  "amplitude": 0.572,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F5",
+  "startTimeSeconds": 46.876,
+  "durationSeconds": 0.139,
+  "amplitude": 0.382,
+  "pitchBends": [],
+  "pitchMidi": 77
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 47.015,
+  "durationSeconds": 0.07,
+  "amplitude": 0.297,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 47.154,
+  "durationSeconds": 0.139,
+  "amplitude": 0.701,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 47.294,
+  "durationSeconds": 0.093,
+  "amplitude": 0.596,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 47.387,
+  "durationSeconds": 0.267,
+  "amplitude": 0.387,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 47.654,
+  "durationSeconds": 0.083,
+  "amplitude": 0.5,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 47.736,
+  "durationSeconds": 0.104,
+  "amplitude": 0.636,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 47.841,
+  "durationSeconds": 0.128,
+  "amplitude": 0.4,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "E7",
+  "startTimeSeconds": 47.968,
+  "durationSeconds": 0.174,
+  "amplitude": 0.41,
+  "pitchBends": [],
+  "pitchMidi": 100
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 48.143,
+  "durationSeconds": 0.116,
+  "amplitude": 0.432,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 48.328,
+  "durationSeconds": 0.093,
+  "amplitude": 0.687,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 48.421,
+  "durationSeconds": 0.104,
+  "amplitude": 0.486,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 48.584,
+  "durationSeconds": 0.07,
+  "amplitude": 0.464,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 48.653,
+  "durationSeconds": 0.116,
+  "amplitude": 0.509,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 48.769,
+  "durationSeconds": 0.104,
+  "amplitude": 0.394,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 49.013,
+  "durationSeconds": 0.139,
+  "amplitude": 0.524,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 49.153,
+  "durationSeconds": 0.081,
+  "amplitude": 0.528,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 49.234,
+  "durationSeconds": 0.151,
+  "amplitude": 0.508,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 49.478,
+  "durationSeconds": 0.07,
+  "amplitude": 0.438,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 49.547,
+  "durationSeconds": 0.152,
+  "amplitude": 0.632,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 49.7,
+  "durationSeconds": 0.104,
+  "amplitude": 0.382,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 49.909,
+  "durationSeconds": 0.139,
+  "amplitude": 0.45,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "B4",
+  "startTimeSeconds": 50.048,
+  "durationSeconds": 0.081,
+  "amplitude": 0.485,
+  "pitchBends": [],
+  "pitchMidi": 71
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 50.152,
+  "durationSeconds": 0.232,
+  "amplitude": 0.429,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 50.385,
+  "durationSeconds": 0.186,
+  "amplitude": 0.408,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F5",
+  "startTimeSeconds": 50.617,
+  "durationSeconds": 0.093,
+  "amplitude": 0.549,
+  "pitchBends": [],
+  "pitchMidi": 77
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 50.71,
+  "durationSeconds": 0.104,
+  "amplitude": 0.354,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 50.837,
+  "durationSeconds": 0.151,
+  "amplitude": 0.316,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 50.988,
+  "durationSeconds": 0.07,
+  "amplitude": 0.489,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 51.093,
+  "durationSeconds": 0.104,
+  "amplitude": 0.476,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "A#5",
+  "startTimeSeconds": 51.197,
+  "durationSeconds": 0.081,
+  "amplitude": 0.433,
+  "pitchBends": [],
+  "pitchMidi": 82
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 51.302,
+  "durationSeconds": 0.093,
+  "amplitude": 0.426,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 51.395,
+  "durationSeconds": 0.128,
+  "amplitude": 0.61,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 51.534,
+  "durationSeconds": 0.104,
+  "amplitude": 0.366,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 51.767,
+  "durationSeconds": 0.104,
+  "amplitude": 0.564,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F5",
+  "startTimeSeconds": 51.872,
+  "durationSeconds": 0.116,
+  "amplitude": 0.454,
+  "pitchBends": [],
+  "pitchMidi": 77
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 52.093,
+  "durationSeconds": 0.116,
+  "amplitude": 0.596,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 52.22,
+  "durationSeconds": 0.093,
+  "amplitude": 0.579,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 52.313,
+  "durationSeconds": 0.128,
+  "amplitude": 0.566,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 52.638,
+  "durationSeconds": 0.023,
+  "amplitude": 0.338,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 52.661,
+  "durationSeconds": 0.209,
+  "amplitude": 0.484,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 52.917,
+  "durationSeconds": 0.07,
+  "amplitude": 0.317,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 53.137,
+  "durationSeconds": 0.116,
+  "amplitude": 0.352,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 53.254,
+  "durationSeconds": 0.081,
+  "amplitude": 0.527,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F5",
+  "startTimeSeconds": 53.335,
+  "durationSeconds": 0.221,
+  "amplitude": 0.489,
+  "pitchBends": [],
+  "pitchMidi": 77
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 53.638,
+  "durationSeconds": 0.163,
+  "amplitude": 0.644,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 53.8,
+  "durationSeconds": 0.07,
+  "amplitude": 0.368,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 54.044,
+  "durationSeconds": 0.128,
+  "amplitude": 0.392,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 54.172,
+  "durationSeconds": 0.128,
+  "amplitude": 0.555,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 54.346,
+  "durationSeconds": 0.139,
+  "amplitude": 0.342,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 54.497,
+  "durationSeconds": 0.116,
+  "amplitude": 0.629,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 54.613,
+  "durationSeconds": 0.128,
+  "amplitude": 0.631,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 54.752,
+  "durationSeconds": 0.116,
+  "amplitude": 0.407,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 55.066,
+  "durationSeconds": 0.104,
+  "amplitude": 0.45,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 55.182,
+  "durationSeconds": 0.104,
+  "amplitude": 0.307,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 55.356,
+  "durationSeconds": 0.058,
+  "amplitude": 0.352,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 55.414,
+  "durationSeconds": 0.139,
+  "amplitude": 0.368,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 55.659,
+  "durationSeconds": 0.302,
+  "amplitude": 0.498,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 55.961,
+  "durationSeconds": 0.174,
+  "amplitude": 0.352,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F5",
+  "startTimeSeconds": 56.135,
+  "durationSeconds": 0.128,
+  "amplitude": 0.389,
+  "pitchBends": [],
+  "pitchMidi": 77
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 56.368,
+  "durationSeconds": 0.116,
+  "amplitude": 0.413,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 56.484,
+  "durationSeconds": 0.07,
+  "amplitude": 0.424,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 56.588,
+  "durationSeconds": 0.116,
+  "amplitude": 0.352,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "A#5",
+  "startTimeSeconds": 56.704,
+  "durationSeconds": 0.081,
+  "amplitude": 0.368,
+  "pitchBends": [],
+  "pitchMidi": 82
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 56.797,
+  "durationSeconds": 0.104,
+  "amplitude": 0.411,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 56.902,
+  "durationSeconds": 0.128,
+  "amplitude": 0.562,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 57.029,
+  "durationSeconds": 0.116,
+  "amplitude": 0.397,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 57.157,
+  "durationSeconds": 0.139,
+  "amplitude": 0.607,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "B4",
+  "startTimeSeconds": 57.378,
+  "durationSeconds": 0.081,
+  "amplitude": 0.388,
+  "pitchBends": [],
+  "pitchMidi": 71
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 57.494,
+  "durationSeconds": 0.035,
+  "amplitude": 0.533,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 57.529,
+  "durationSeconds": 0.315,
+  "amplitude": 0.394,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 57.843,
+  "durationSeconds": 0.267,
+  "amplitude": 0.392,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 58.203,
+  "durationSeconds": 0.128,
+  "amplitude": 0.729,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 58.331,
+  "durationSeconds": 0.07,
+  "amplitude": 0.47,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 58.447,
+  "durationSeconds": 0.093,
+  "amplitude": 0.412,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 58.656,
+  "durationSeconds": 0.081,
+  "amplitude": 0.308,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 58.76,
+  "durationSeconds": 0.139,
+  "amplitude": 0.642,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 58.981,
+  "durationSeconds": 0.116,
+  "amplitude": 0.475,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 59.12,
+  "durationSeconds": 0.116,
+  "amplitude": 0.537,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 59.422,
+  "durationSeconds": 0.139,
+  "amplitude": 0.482,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "A5",
+  "startTimeSeconds": 59.562,
+  "durationSeconds": 0.083,
+  "amplitude": 0.287,
+  "pitchBends": [],
+  "pitchMidi": 81
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 59.667,
+  "durationSeconds": 0.139,
+  "amplitude": 0.645,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 60.039,
+  "durationSeconds": 0.197,
+  "amplitude": 0.608,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "C5",
+  "startTimeSeconds": 60.352,
+  "durationSeconds": 0.128,
+  "amplitude": 0.43,
+  "pitchBends": [],
+  "pitchMidi": 72
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 60.48,
+  "durationSeconds": 0.104,
+  "amplitude": 0.408,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 60.585,
+  "durationSeconds": 0.07,
+  "amplitude": 0.441,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 60.794,
+  "durationSeconds": 0.081,
+  "amplitude": 0.382,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 60.968,
+  "durationSeconds": 0.337,
+  "amplitude": 0.625,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "B4",
+  "startTimeSeconds": 61.548,
+  "durationSeconds": 0.059,
+  "amplitude": 0.325,
+  "pitchBends": [],
+  "pitchMidi": 71
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 61.84,
+  "durationSeconds": 0.116,
+  "amplitude": 0.452,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 62.327,
+  "durationSeconds": 0.174,
+  "amplitude": 0.597,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 62.525,
+  "durationSeconds": 0.116,
+  "amplitude": 0.352,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 62.641,
+  "durationSeconds": 0.139,
+  "amplitude": 0.475,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 62.803,
+  "durationSeconds": 0.209,
+  "amplitude": 0.482,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 63.059,
+  "durationSeconds": 0.186,
+  "amplitude": 0.501,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 63.256,
+  "durationSeconds": 0.104,
+  "amplitude": 0.612,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 63.361,
+  "durationSeconds": 0.081,
+  "amplitude": 0.395,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "C#4",
+  "startTimeSeconds": 63.465,
+  "durationSeconds": 0.117,
+  "amplitude": 0.299,
+  "pitchBends": [],
+  "pitchMidi": 61
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 63.699,
+  "durationSeconds": 0.116,
+  "amplitude": 0.415,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 63.815,
+  "durationSeconds": 0.104,
+  "amplitude": 0.491,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 63.931,
+  "durationSeconds": 0.128,
+  "amplitude": 0.32,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 64.151,
+  "durationSeconds": 0.058,
+  "amplitude": 0.487,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 64.209,
+  "durationSeconds": 0.07,
+  "amplitude": 0.457,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 64.279,
+  "durationSeconds": 0.093,
+  "amplitude": 0.523,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "G#4",
+  "startTimeSeconds": 64.395,
+  "durationSeconds": 0.267,
+  "amplitude": 0.591,
+  "pitchBends": [],
+  "pitchMidi": 68
+ },
+ {
+  "noteName": "F#4",
+  "startTimeSeconds": 64.709,
+  "durationSeconds": 0.104,
+  "amplitude": 0.251,
+  "pitchBends": [],
+  "pitchMidi": 66
+ },
+ {
+  "noteName": "G#4",
+  "startTimeSeconds": 64.871,
+  "durationSeconds": 0.163,
+  "amplitude": 0.43,
+  "pitchBends": [],
+  "pitchMidi": 68
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 65.092,
+  "durationSeconds": 0.104,
+  "amplitude": 0.401,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "D#4",
+  "startTimeSeconds": 65.196,
+  "durationSeconds": 0.07,
+  "amplitude": 0.432,
+  "pitchBends": [],
+  "pitchMidi": 63
+ },
+ {
+  "noteName": "D4",
+  "startTimeSeconds": 65.278,
+  "durationSeconds": 0.186,
+  "amplitude": 0.316,
+  "pitchBends": [],
+  "pitchMidi": 62
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 65.557,
+  "durationSeconds": 0.151,
+  "amplitude": 0.522,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 65.987,
+  "durationSeconds": 0.128,
+  "amplitude": 0.502,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 66.208,
+  "durationSeconds": 0.116,
+  "amplitude": 0.484,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "G#4",
+  "startTimeSeconds": 66.451,
+  "durationSeconds": 0.104,
+  "amplitude": 0.427,
+  "pitchBends": [],
+  "pitchMidi": 68
+ },
+ {
+  "noteName": "C5",
+  "startTimeSeconds": 66.556,
+  "durationSeconds": 0.104,
+  "amplitude": 0.562,
+  "pitchBends": [],
+  "pitchMidi": 72
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 66.672,
+  "durationSeconds": 0.209,
+  "amplitude": 0.609,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "G5",
+  "startTimeSeconds": 66.893,
+  "durationSeconds": 0.163,
+  "amplitude": 0.493,
+  "pitchBends": [],
+  "pitchMidi": 79
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 67.055,
+  "durationSeconds": 0.232,
+  "amplitude": 0.403,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 67.287,
+  "durationSeconds": 0.07,
+  "amplitude": 0.293,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "G#5",
+  "startTimeSeconds": 67.415,
+  "durationSeconds": 0.104,
+  "amplitude": 0.395,
+  "pitchBends": [],
+  "pitchMidi": 80
+ },
+ {
+  "noteName": "E7",
+  "startTimeSeconds": 67.637,
+  "durationSeconds": 0.07,
+  "amplitude": 0.414,
+  "pitchBends": [],
+  "pitchMidi": 100
+ },
+ {
+  "noteName": "D5",
+  "startTimeSeconds": 67.707,
+  "durationSeconds": 0.07,
+  "amplitude": 0.451,
+  "pitchBends": [],
+  "pitchMidi": 74
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 67.799,
+  "durationSeconds": 0.151,
+  "amplitude": 0.477,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "F5",
+  "startTimeSeconds": 68.008,
+  "durationSeconds": 0.116,
+  "amplitude": 0.267,
+  "pitchBends": [],
+  "pitchMidi": 77
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 68.125,
+  "durationSeconds": 0.139,
+  "amplitude": 0.326,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "F#5",
+  "startTimeSeconds": 68.275,
+  "durationSeconds": 0.186,
+  "amplitude": 0.576,
+  "pitchBends": [],
+  "pitchMidi": 78
+ },
+ {
+  "noteName": "E5",
+  "startTimeSeconds": 68.763,
+  "durationSeconds": 0.081,
+  "amplitude": 0.384,
+  "pitchBends": [],
+  "pitchMidi": 76
+ },
+ {
+  "noteName": "A#4",
+  "startTimeSeconds": 68.844,
+  "durationSeconds": 0.07,
+  "amplitude": 0.366,
+  "pitchBends": [],
+  "pitchMidi": 70
+ },
+ {
+  "noteName": "C5",
+  "startTimeSeconds": 68.914,
+  "durationSeconds": 0.104,
+  "amplitude": 0.678,
+  "pitchBends": [],
+  "pitchMidi": 72
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 69.019,
+  "durationSeconds": 0.116,
+  "amplitude": 0.448,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "D#5",
+  "startTimeSeconds": 69.216,
+  "durationSeconds": 0.104,
+  "amplitude": 0.47,
+  "pitchBends": [],
+  "pitchMidi": 75
+ },
+ {
+  "noteName": "C#5",
+  "startTimeSeconds": 69.39,
+  "durationSeconds": 0.07,
+  "amplitude": 0.472,
+  "pitchBends": [],
+  "pitchMidi": 73
+ },
+ {
+  "noteName": "A4",
+  "startTimeSeconds": 69.554,
+  "durationSeconds": 0.093,
+  "amplitude": 0.299,
+  "pitchBends": [],
+  "pitchMidi": 69
+ },
+ {
+  "noteName": "G4",
+  "startTimeSeconds": 69.728,
+  "durationSeconds": 0.07,
+  "amplitude": 0.381,
+  "pitchBends": [],
+  "pitchMidi": 67
+ },
+ {
+  "noteName": "F4",
+  "startTimeSeconds": 69.809,
+  "durationSeconds": 0.116,
+  "amplitude": 0.505,
+  "pitchBends": [],
+  "pitchMidi": 65
+ },
+ {
+  "noteName": "D#4",
+  "startTimeSeconds": 70.076,
+  "durationSeconds": 0.186,
+  "amplitude": 0.588,
+  "pitchBends": [],
+  "pitchMidi": 63
+ },
+ {
+  "noteName": "G#3",
+  "startTimeSeconds": 70.529,
+  "durationSeconds": 0.244,
+  "amplitude": 0.349,
+  "pitchBends": [],
+  "pitchMidi": 56
+ }
+]
