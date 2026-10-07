@@ -183,7 +183,7 @@ export default function Library() {
       <ul className={styles.list}>
         {shown.map((t) => (
           <li key={t.id}>
-            <Link href={`/tunes/${t.id}`} className={styles.card}>
+            <Link href={`/tune?id=${t.id}`} className={styles.card}>
               <div className={styles.cardMain}>
                 <span className={styles.title}>{t.title}</span>
                 {t.aka.length > 0 && (

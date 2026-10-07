@@ -107,7 +107,7 @@ export default function NewRecording() {
         audio: loaded.audio,
         fileName: loaded.fileName,
       });
-      router.push(`/tunes/${rec.id}`);
+      router.push(`/tune?id=${rec.id}`);
     } catch (e) {
       setError(`Could not save: ${(e as Error).message}`);
       setSaving(false);

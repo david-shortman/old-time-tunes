@@ -42,7 +42,7 @@ npx nx serve ott-bp-api     # FastAPI on :8000 (optional: only for the "server" 
 ```
 
 ```bash
-npx nx serve ott-app        # Next.js on :4200
+npx nx serve ott-app        # Next.js on :4200 (production is a static export, see Firebase below)
 ```
 
 Open http://localhost:4200. The library starts empty; add a recording of yourself
@@ -63,6 +63,31 @@ Transcription quality against ground truth:
 
 ```bash
 cd apps/ott-bp-api && poetry run python eval/run_eval.py --mono
+```
+
+## Firebase (shared library, in progress)
+
+Decisions: static export to Firebase Hosting, email magic-link sign-in,
+public/private visibility. Plan: [docs/firebase-plan.md](docs/firebase-plan.md).
+
+Config in the repo: `firebase.json` (hosting from `apps/ott-app/out`, cache and
+cross-origin-isolation headers, emulators), `firestore.rules`,
+`firestore.indexes.json`, `storage.rules`, `.firebaserc` (project
+`old-time-tunes`). The web app reads `NEXT_PUBLIC_FIREBASE_*` from
+`apps/ott-app/.env.local`; copy `.env.local.example` and fill it from the
+Firebase console or `firebase apps:sdkconfig web`. Without it the app runs
+browser-only.
+
+```bash
+npx nx run ott-app:emulators      # Auth, Firestore, Storage, Hosting emulators (+ UI on :4000)
+```
+
+```bash
+npx nx run ott-app:deploy-preview # static export + Hosting preview channel (needs `firebase login`)
+```
+
+```bash
+npx nx run ott-app:deploy         # static export + deploy hosting, rules and indexes
 ```
 
 ## Layout notes

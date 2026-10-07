@@ -12,6 +12,7 @@
     "@spotify/basic-pitch": "^1.0.1",
     "@tonejs/midi": "^2.0.28",
     "axios": "1.7.7",
+    "firebase": "^12.19.0",
     "husky": "^8.0.3",
     "is-ci": "^3.0.1",
     "lint-staged": "^15.2.0",

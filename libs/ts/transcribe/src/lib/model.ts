@@ -27,7 +27,11 @@ export class BasicPitchOnnx {
   private constructor(private readonly ort: Ort, private readonly session: InferenceSession, private readonly batchSize: number) {}
 
   static async load(opts: ModelOptions): Promise<BasicPitchOnnx> {
-    const ort: Ort = opts.backend === 'webgpu' ? await import('onnxruntime-web/webgpu') : await import('onnxruntime-web/wasm');
+    // Load the runtime from the host app's static files at run time rather than bundling it:
+    // the ESM build uses import.meta and worker URLs that production bundlers mangle, and this
+    // keeps the 14 MB wasm and its loader out of the app bundle entirely.
+    const loader = `${opts.wasmPaths}${opts.backend === 'webgpu' ? 'ort.webgpu.min.mjs' : 'ort.wasm.min.mjs'}`;
+    const ort = (await import(/* webpackIgnore: true */ loader)) as unknown as Ort;
     ort.env.wasm.wasmPaths = opts.wasmPaths;
     if (opts.assets) ort.env.wasm.wasmBinary = opts.assets.wasmBinary;
     ort.env.wasm.numThreads = opts.numThreads ?? (typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1);

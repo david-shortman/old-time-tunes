@@ -1,7 +1,9 @@
 # Firebase plan: API and database for Old Time Tunes
 
-Status: proposal, 2026-10-07. Replaces the browser-only IndexedDB library with a
-shared, signed-in library on Firebase, without adding a server to run.
+Status: decided 2026-10-07 (static export, email magic links, public/private
+visibility); step 1 of the rollout is in the repo. Replaces the browser-only
+IndexedDB library with a shared, signed-in library on Firebase, without adding
+a server to run.
 
 ## What we already have, and what that implies
 
@@ -150,8 +152,10 @@ The app is now pure client code. Two options:
 2. Keep App Hosting with `minInstances: 0`. Works unchanged but still a
    container, and cold starts for the first visitor.
 
-Either way, the build must run `nx build ott-app`, whose `copy-assets`
-dependency stages the ONNX model and the wasm into `public/`. Those files are
+The static export is `nx run ott-app:export` (Next's own build; the Nx Next
+executor does not write `out/`), whose `copy-assets` dependency stages the ONNX
+model and the wasm into `public/`. The ONNX runtime is loaded at run time from
+`/ort/`, never bundled. Those files are
 git-ignored; a deploy that skips the Nx target ships a page that can't
 transcribe. Hosting headers: long cache on `/ort/*` and `/model/*`, and
 `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy:
@@ -189,9 +193,24 @@ Firestore free tier (50k reads/day), Storage 5 GB free, Hosting 10 GB/month
 free. Two users with a few hundred recordings sit inside all of them. The Blaze
 plan is already required by App Hosting; after step 4 the expected bill is $0.
 
-## Open questions for David
+## Decisions (2026-10-07)
 
-- Static export vs App Hosting (plan assumes static).
-- Sign-in providers: Google only, or also email link for family without Google.
-- Is "household" the right v1 sharing level, or go straight to public with
-  private-by-default?
+- Static export on Firebase Hosting. `apphosting.yaml` stays until the App
+  Hosting backend is deleted in the console.
+- Sign-in by email magic link. Google can be added later.
+- Visibility is `private` (default) or `public`; no household level. Sharing
+  between two people means both use public tunes, or one account.
+
+## Step 1 status
+
+Done in the repo (verified on the Hosting emulator: COOP/COEP headers present,
+`crossOriginIsolated === true`, transcription 0.5 s with threads vs 1.6 s
+without): `firebase.json`, `.firebaserc`, `firestore.rules`,
+`storage.rules`, `firestore.indexes.json`, `firebase` SDK, lazy client init with
+emulator wiring (`apps/ott-app/src/app/lib/firebase.ts`), static export
+(`/tune?id=`), Nx targets `emulators`, `deploy`, `deploy-preview`, CI workflow.
+Needs David at the keyboard: `firebase login --reauth` (the CLI's credentials for
+david@mountainsol.org expired; the project is not visible to the other signed-in
+account), confirm the project id, register a web app and paste its config into
+`apps/ott-app/.env.local`, enable Email link sign-in in Authentication, create
+the Firestore database and Storage bucket, then `npx nx run ott-app:deploy`.

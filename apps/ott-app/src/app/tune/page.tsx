@@ -1,28 +1,38 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { OTTNote } from '@ot-tunes/notes';
 import type { TuneRecord } from '@ot-tunes/library';
 import { ALL_KEYS, OttReactPlayback } from '@old-time-tunes/ott-react-playback';
-import {
-  formatDuration,
-  getRepository,
-  relativeDate,
-} from '../../lib/repository';
+import { formatDuration, getRepository, relativeDate } from '../lib/repository';
 import {
   TuneForm,
   emptyDetails,
   splitList,
   type TuneDetails,
-} from '../../tune-form';
+} from '../tune-form';
 import styles from './tune.module.css';
 
 type SaveState = 'saved' | 'saving' | 'dirty' | 'error';
 
 /** One tune: follow along, break it down, fix notes, edit details. Edits save to the library. */
 export default function TunePage() {
-  const { id } = useParams<{ id: string }>();
+  return (
+    <Suspense
+      fallback={
+        <main className={styles.page}>
+          <p className={styles.muted}>Loading…</p>
+        </main>
+      }
+    >
+      <TuneView />
+    </Suspense>
+  );
+}
+
+function TuneView() {
+  const id = useSearchParams().get('id') ?? '';
   const router = useRouter();
   const repo = getRepository();
   const [tune, setTune] = useState<TuneRecord | null | undefined>(undefined);

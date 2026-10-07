@@ -7,23 +7,16 @@
   "targets": {
     "build": {
       "executor": "@nx/next:build",
-      "outputs": [
-        "{options.outputPath}"
-      ],
+      "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "apps/ott-app"
+        "outputPath": "dist/apps/ott-app"
       },
       "configurations": {
-        "development": {
-          "outputPath": "apps/ott-app"
-        },
+        "development": {},
         "production": {}
       },
-      "dependsOn": [
-        "copy-assets",
-        "^build"
-      ]
+      "dependsOn": ["copy-assets", "^build"]
     },
     "serve": {
       "executor": "@nx/next:server",
@@ -42,21 +35,20 @@
           "dev": false
         }
       },
-      "dependsOn": [
-        "copy-assets"
-      ]
+      "dependsOn": ["copy-assets"]
     },
     "export": {
-      "executor": "@nx/next:export",
+      "executor": "nx:run-commands",
+      "dependsOn": ["copy-assets"],
+      "outputs": ["{projectRoot}/out"],
       "options": {
-        "buildTarget": "ott-app:build:production"
+        "command": "npx next build",
+        "cwd": "apps/ott-app"
       }
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": [
-        "{workspaceRoot}/coverage/{projectRoot}"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
         "jestConfig": "apps/ott-app/jest.config.ts"
       }
@@ -66,18 +58,37 @@
     },
     "copy-assets": {
       "executor": "nx:run-commands",
-      "outputs": [
-        "{projectRoot}/public/ort",
-        "{projectRoot}/public/model"
-      ],
+      "outputs": ["{projectRoot}/public/ort", "{projectRoot}/public/model"],
       "options": {
         "commands": [
           "mkdir -p apps/ott-app/public/ort apps/ott-app/public/model",
-          "cp node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.mjs apps/ott-app/public/ort/",
-          "cp node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.mjs apps/ott-app/public/ort/",
+          "cp node_modules/onnxruntime-web/dist/ort.wasm.min.mjs node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.mjs apps/ott-app/public/ort/",
           "cp libs/ts/transcribe/model/nmp.onnx apps/ott-app/public/model/"
         ],
         "parallel": false
+      }
+    },
+    "emulators": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "firebase emulators:start --import ./emulator-data --export-on-exit ./emulator-data",
+        "cwd": "."
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["export"],
+      "options": {
+        "command": "firebase deploy --only hosting,firestore:rules,firestore:indexes,storage",
+        "cwd": "."
+      }
+    },
+    "deploy-preview": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["export"],
+      "options": {
+        "command": "firebase hosting:channel:deploy preview --expires 7d",
+        "cwd": "."
       }
     }
   }
