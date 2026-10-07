@@ -221,10 +221,10 @@ export function LearnerView({
     next && lead > 0 ? Math.max(0, Math.min(1, (t - (tn - lead)) / lead)) : 0; // 0 → 1 across the wind-up
 
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
-  const easeOut = (v: number) => 1 - Math.pow(1 - v, 3);
+  const easeOut = (v: number) => 1 - Math.pow(1 - v, 2.2);
   const HALF_W = 110; // half of a card's unscaled width
   const CONTACT_U = 0.6; // share of the wind-up spent travelling; the rest is pressing
-  const MAX_SHIFT = 26; // how far the primary gives under pressure before it lets go
+  const MAX_SHIFT = 12; // how far the primary gives under pressure before it lets go
   const center = laneW / 2;
   const R = laneW * 0.38; // where the next card rests
   const L = laneW * 0.36; // where a finished card ends up
@@ -233,7 +233,7 @@ export function LearnerView({
   const pairAt = (uu: number) => {
     const press =
       uu > CONTACT_U ? easeOut((uu - CONTACT_U) / (1 - CONTACT_U)) : 0;
-    const shift = MAX_SHIFT * press * press; // slow creep that steepens: tension building
+    const shift = MAX_SHIFT * press * press * (3 - 2 * press); // smooth build, no kick
     const sNext = 0.58 + 0.3 * Math.pow(Math.min(1, uu / CONTACT_U), 2.4);
     const curScaleX = 1;
     const nextScaleX = sNext;
@@ -250,8 +250,8 @@ export function LearnerView({
     };
   };
   const pair = pairAt(u);
-  const travel = Math.pow(Math.min(1, u / CONTACT_U), 2.2); // accelerating approach to contact
-  const pullBack = u < 0.3 ? R * 0.07 * Math.sin(Math.PI * (u / 0.3)) : 0; // "and… here it comes"
+  const travel = Math.pow(Math.min(1, u / CONTACT_U), 1.6); // gently accelerating approach to contact
+  const pullBack = u < 0.3 ? R * 0.03 * Math.sin(Math.PI * (u / 0.3)) : 0; // "and… here it comes"
   const nextX =
     u >= CONTACT_U
       ? pair.contactX
@@ -262,11 +262,11 @@ export function LearnerView({
 
   // after an onset: the arriving card snaps from the contact point into the centre, the old one is shoved out
   const since = current ? t - tc : 0;
-  const handoff = clamp01(since / 0.2);
+  const handoff = clamp01(since / 0.3);
   const atRelease = pairAt(1);
   const curX = center + (atRelease.contactX - center) * (1 - easeOut(handoff));
   const curScale = atRelease.sNext + (1 - atRelease.sNext) * easeOut(handoff);
-  const shove = easeOut(clamp01(since / 0.28));
+  const shove = easeOut(clamp01(since / 0.4));
   const prevX = center - atRelease.shift - (L - atRelease.shift) * shove;
 
   const place = (
