@@ -105,8 +105,10 @@ def legato(notes: list[Note], max_gap: float = 0.5) -> list[Note]:
 
 def score(ref: list[Note], est: list[Note]) -> dict[str, float]:
     import mir_eval.transcription as T
-    to_arr = lambda ns: (np.array([[n.start, n.end] for n in ns]).reshape(-1, 2),
-                         np.array([440 * 2 ** ((n.pitch - 69) / 12) for n in ns]))
+
+    def to_arr(ns: list[Note]) -> tuple[np.ndarray, np.ndarray]:
+        return (np.array([[n.start, n.end] for n in ns]).reshape(-1, 2),
+                np.array([440 * 2 ** ((n.pitch - 69) / 12) for n in ns]))
     ri, rp = to_arr(ref)
     ei, ep = to_arr(est)
     if len(est) == 0:
@@ -125,12 +127,18 @@ def side_by_side(ref: list[Note], est: list[Note], limit: int) -> str:
         r = ref[i] if i < len(ref) else None
         e = est[j] if j < len(est) else None
         if e is None or (r is not None and r.start < e.start - 0.05):
-            rows.append(f"  {r.start:6.2f}   {note_name(r.pitch):<4}({r.dur:.2f})     --   (missed)"); i += 1
+            rows.append(f"  {r.start:6.2f}   {note_name(r.pitch):<4}({r.dur:.2f})     --   (missed)")
+            i += 1
         elif r is None or e.start < r.start - 0.05:
-            rows.append(f"  {e.start:6.2f}   --             {note_name(e.pitch):<4}({e.dur:.2f}) extra, amp {e.amp:.2f}"); j += 1
+            rows.append(f"  {e.start:6.2f}   --             {note_name(e.pitch):<4}({e.dur:.2f}) "
+                        f"extra, amp {e.amp:.2f}")
+            j += 1
         else:
             mark = '' if r.pitch == e.pitch else '  <-- wrong pitch'
-            rows.append(f"  {r.start:6.2f}   {note_name(r.pitch):<4}({r.dur:.2f})     {note_name(e.pitch):<4}({e.dur:.2f}){mark}"); i += 1; j += 1
+            rows.append(f"  {r.start:6.2f}   {note_name(r.pitch):<4}({r.dur:.2f})     "
+                        f"{note_name(e.pitch):<4}({e.dur:.2f}){mark}")
+            i += 1
+            j += 1
     return "\n".join(rows)
 
 
@@ -188,7 +196,8 @@ def main() -> int:
         ref = midi_notes(mid)
         s = score(ref, est)
         fs.append(s['f'])
-        print(f"{src.stem:<26}{s['n_ref']:>5}{s['n_est']:>5}{s['p']:>7.2f}{s['r']:>7.2f}{s['f']:>7.2f}{s['f_off']:>8.2f}")
+        print(f"{src.stem:<26}{s['n_ref']:>5}{s['n_est']:>5}{s['p']:>7.2f}{s['r']:>7.2f}"
+              f"{s['f']:>7.2f}{s['f_off']:>8.2f}")
         if a.show:
             print(side_by_side(ref, est, a.show), "\n")
     if fs:
