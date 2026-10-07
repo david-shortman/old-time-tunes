@@ -50,3 +50,6 @@ out
 # transcription eval renders
 apps/ott-bp-api/eval/out
 *.tsbuildinfo
+
+# lint reports
+/reports
