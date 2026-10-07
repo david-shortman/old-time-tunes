@@ -122,8 +122,29 @@ export function LearnerView({
   } | null>(null);
   const animRef = useRef(0);
   useEffect(() => () => cancelAnimationFrame(animRef.current), []);
+  const lockedIdx = useMemo(() => {
+    let k = -1;
+    for (let i = 0; i < notes.length; i++)
+      if (notes[i].startTimeSeconds <= currentTime) k = i;
+    return k;
+  }, [notes, currentTime]);
+  // the override holds the settled pose while paused on the note it was made for
+  const overrideActive =
+    override !== null &&
+    !isPlaying &&
+    Math.abs(override.anchor - currentTime) < 1e-3;
+  // paused exactly on an onset (as the step buttons leave us) shows the settled pose, not the arrival
+  const restingTime =
+    !isPlaying &&
+    lockedIdx >= 0 &&
+    Math.abs(notes[lockedIdx].startTimeSeconds - currentTime) < 1e-3
+      ? currentTime + 0.3
+      : currentTime;
+  const t = overrideActive ? (override as { time: number }).time : restingTime;
+
   const animateLane = (from: number, to: number, anchor: number, ms = 450) => {
     cancelAnimationFrame(animRef.current);
+    setOverride({ time: from, anchor }); // synchronously, so the seek and the first frame render together
     const start = performance.now();
     const frame = (now: number) => {
       const p = Math.min(1, (now - start) / ms);
@@ -139,46 +160,44 @@ export function LearnerView({
     );
   const stepNext = () => {
     const i = notes.findIndex((n) => n.startTimeSeconds > currentTime + 0.01);
-    onNextNote();
-    if (i < 0 || isPlaying) return;
+    if (i < 0 || isPlaying) {
+      onNextNote();
+      return;
+    }
     const target = notes[i];
     const lead = leadFor(
       notes[i - 1]?.startTimeSeconds,
       target.startTimeSeconds
     );
-    animateLane(
-      Math.max(currentTime, target.startTimeSeconds - lead),
-      target.startTimeSeconds + 0.3,
-      target.startTimeSeconds
-    );
+    const from = Math.max(t, target.startTimeSeconds - lead); // start from the pose on screen
+    animateLane(from, target.startTimeSeconds + 0.3, target.startTimeSeconds);
+    onNextNote();
   };
   const stepPrev = () => {
     let i = -1;
-    for (let k = notes.length - 1; k >= 0; k--)
+    for (let k = notes.length - 1; k >= 0; k--) {
       if (notes[k].startTimeSeconds < currentTime - 0.15) {
         i = k;
         break;
       }
-    onPrevNote();
-    if (i < 0 || isPlaying) return;
+    }
+    if (i < 0 || isPlaying) {
+      onPrevNote();
+      return;
+    }
     const target = notes[i];
     const cur = notes[i + 1];
     const lead = cur
       ? leadFor(target.startTimeSeconds, cur.startTimeSeconds)
       : 0;
-    const from = cur
-      ? Math.min(currentTime, cur.startTimeSeconds + 0.3)
-      : currentTime;
+    // run time backwards from the pose on screen through the release and the press, until the
+    // previous card is back in the centre and the current one is at rest on the right
     const to = cur
       ? Math.max(cur.startTimeSeconds - lead, target.startTimeSeconds + 0.3)
       : target.startTimeSeconds + 0.3;
-    animateLane(from, to, target.startTimeSeconds);
+    animateLane(Math.max(t, to), to, target.startTimeSeconds);
+    onPrevNote();
   };
-  // the override holds the settled pose while paused on the note it was made for
-  const t =
-    override && !isPlaying && Math.abs(override.anchor - currentTime) < 1e-3
-      ? override.time
-      : currentTime;
 
   // Snap-and-lock cards with contact. The note being played sits locked on the "now" line. A beat
   // or two before the next onset the next card winds up (slight pull-back), accelerates in until it
@@ -305,7 +324,13 @@ export function LearnerView({
         )}
       </div>
 
-      <div className={styles.conveyor} ref={laneRef}>
+      <div
+        className={styles.conveyor}
+        ref={laneRef}
+        data-time={currentTime.toFixed(3)}
+        data-virtual={t.toFixed(3)}
+        data-locked={lockedIdx}
+      >
         <div className={styles.nowLine} aria-hidden />
         <div className={styles.nowLabel}>now</div>
         <div className={styles.laneHint}>
