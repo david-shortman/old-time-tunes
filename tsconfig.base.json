@@ -23,6 +23,9 @@
       ],
       "@ot-tunes/notes": [
         "libs/ts/notes/src/index.ts"
+      ],
+      "@ot-tunes/transcribe": [
+        "libs/ts/transcribe/src/index.ts"
       ]
     }
   },

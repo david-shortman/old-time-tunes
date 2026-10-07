@@ -53,3 +53,7 @@ apps/ott-bp-api/eval/out
 
 # lint reports
 /reports
+
+# generated browser-inference assets (see ott-app copy-assets target)
+apps/ott-app/public/ort
+apps/ott-app/public/model

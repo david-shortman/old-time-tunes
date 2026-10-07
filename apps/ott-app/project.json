@@ -7,7 +7,9 @@
   "targets": {
     "build": {
       "executor": "@nx/next:build",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "apps/ott-app"
@@ -17,7 +19,11 @@
           "outputPath": "apps/ott-app"
         },
         "production": {}
-      }
+      },
+      "dependsOn": [
+        "copy-assets",
+        "^build"
+      ]
     },
     "serve": {
       "executor": "@nx/next:server",
@@ -35,7 +41,10 @@
           "buildTarget": "ott-app:build:production",
           "dev": false
         }
-      }
+      },
+      "dependsOn": [
+        "copy-assets"
+      ]
     },
     "export": {
       "executor": "@nx/next:export",
@@ -45,13 +54,31 @@
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": [
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
       "options": {
         "jestConfig": "apps/ott-app/jest.config.ts"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
+    },
+    "copy-assets": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/public/ort",
+        "{projectRoot}/public/model"
+      ],
+      "options": {
+        "commands": [
+          "mkdir -p apps/ott-app/public/ort apps/ott-app/public/model",
+          "cp node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.mjs apps/ott-app/public/ort/",
+          "cp node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.mjs apps/ott-app/public/ort/",
+          "cp libs/ts/transcribe/model/nmp.onnx apps/ott-app/public/model/"
+        ],
+        "parallel": false
+      }
     }
   }
 }

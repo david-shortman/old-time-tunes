@@ -15,11 +15,13 @@ Dev logs: [Old Time Tunes Dev Log](https://dev.to/davidshortman) on dev.to.
 | `ott-app` | `apps/ott-app` | Next.js app: upload a recording, view and edit the transcription |
 | `ott-react-playback` | `libs/react/playback` | React player + timeline editor (fingering, waveform comparison, beat grid, note editing) |
 | `ott-notes` | `libs/ts/notes` | the shared `OTTNote` type |
+| `ott-transcribe` | `libs/ts/transcribe` | Basic Pitch in the browser via ONNX Runtime Web, same post-processing as the API |
 | `ott-bp-api` | `apps/ott-bp-api` | FastAPI service wrapping Spotify's Basic Pitch, with fiddle-oriented post-processing, plus an evaluation harness in `eval/` |
 
-Transcription today runs in the Python API. Running the same model in the
-browser is the next architectural step (see `apps/ott-bp-api/eval/README.md`
-for what the model does well and badly).
+Transcription runs in the browser by default (ONNX Runtime Web, no server);
+the Python API remains as the reference implementation and the evaluation
+harness (see `apps/ott-bp-api/eval/README.md` for what the model does well
+and badly). The upload form has a switch between the two.
 
 ## Running it
 
@@ -34,7 +36,7 @@ cd apps/ott-bp-api && poetry install
 Then two terminals:
 
 ```bash
-npx nx serve ott-bp-api     # FastAPI on :8000
+npx nx serve ott-bp-api     # FastAPI on :8000 (optional: only for the "server" engine and the eval harness)
 ```
 
 ```bash
