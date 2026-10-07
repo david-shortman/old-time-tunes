@@ -421,6 +421,7 @@ export function NoteEditor({
       preview.set(drag.index, {
         ...o,
         durationSeconds: Math.max(MIN_DUR, m.t - o.startTimeSeconds),
+        pitchBends: [],
       });
     } else {
       const end = o.startTimeSeconds + o.durationSeconds;
@@ -435,6 +436,7 @@ export function NoteEditor({
         ...o,
         startTimeSeconds: start,
         durationSeconds: end - start,
+        pitchBends: [],
       });
     }
     setDrag({
@@ -507,7 +509,11 @@ export function NoteEditor({
     let cut = snap ? magnet(at, [], false).t : at;
     if (cut <= start + MIN_DUR || cut >= end - MIN_DUR)
       cut = start + n.durationSeconds / 2;
-    const first: OTTNote = { ...n, durationSeconds: cut - start };
+    const first: OTTNote = {
+      ...n,
+      durationSeconds: cut - start,
+      pitchBends: [],
+    };
     const second: OTTNote = {
       ...n,
       startTimeSeconds: cut,

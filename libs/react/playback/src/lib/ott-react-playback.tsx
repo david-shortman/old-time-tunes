@@ -426,6 +426,11 @@ export function OttReactPlayback({
   const patchSelected = (patch: Partial<OTTNote>) => {
     if (!selectedNote) return;
     let next: OTTNote = { ...selectedNote, ...patch };
+    if (
+      patch.durationSeconds !== undefined ||
+      patch.startTimeSeconds !== undefined
+    )
+      next.pitchBends = [];
     if (patch.pitchMidi !== undefined) next = withPitch(next, patch.pitchMidi);
     updateNotes(
       notes.map((n, i) => (i === anchor ? next : n)),

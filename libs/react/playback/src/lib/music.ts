@@ -374,6 +374,7 @@ export function quantize(
     ...n,
     startTimeSeconds: snapTime(n.startTimeSeconds, tempo, gridBeats),
     durationSeconds: snapDuration(n.durationSeconds, tempo),
+    pitchBends: [],
   }));
 }
 
