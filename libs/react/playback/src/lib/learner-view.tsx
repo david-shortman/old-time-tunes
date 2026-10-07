@@ -113,9 +113,12 @@ export function LearnerView({
     n.startTimeSeconds + n.durationSeconds > winStart &&
     n.startTimeSeconds < winStart + win;
 
-  // Snap-and-lock cards. The note being played sits locked on the "now" line. A beat or two before
-  // the next onset, the next card winds up (a slight pull-back) and accelerates in so it lands exactly
-  // on the beat; the old card is pushed left, shrinking and fading. Everything is a function of time.
+  // Snap-and-lock cards with contact. The note being played sits locked on the "now" line. A beat
+  // or two before the next onset the next card winds up (slight pull-back), accelerates in until it
+  // touches the primary's edge, then presses: both squash where they meet and the primary is nudged
+  // left under growing tension. On the onset the tension releases: the primary is shoved out to the
+  // left and the arriving card snaps the last distance into the centre. Everything is a function of
+  // the playhead, so it has momentum while playing and springs when stepping while paused.
   const idx = useMemo(() => {
     let k = -1;
     for (let i = 0; i < notes.length; i++)
@@ -133,44 +136,85 @@ export function LearnerView({
     next && lead > 0
       ? Math.max(0, Math.min(1, (currentTime - (tn - lead)) / lead))
       : 0; // 0 → 1 across the wind-up
+
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
   const easeOut = (v: number) => 1 - Math.pow(1 - v, 3);
+  const easeOutBack = (v: number) =>
+    1 + 2.4 * Math.pow(v - 1, 3) + 1.4 * Math.pow(v - 1, 2); // overshoots ~8%
+  const HALF_W = 110; // half of a card's unscaled width
+  const CONTACT_U = 0.6; // share of the wind-up spent travelling; the rest is pressing
+  const MAX_SHIFT = 26; // how far the primary gives under pressure before it lets go
   const center = laneW / 2;
-  const R = laneW * 0.38; // where the next card rests before it starts moving
+  const R = laneW * 0.38; // where the next card rests
   const L = laneW * 0.36; // where a finished card ends up
-  const approach = Math.pow(u, 2.4); // slow start, accelerating arrival
-  const pullBack = u < 0.35 ? R * 0.07 * Math.sin(Math.PI * (u / 0.35)) : 0; // "and… here it comes"
+
+  /** geometry of the pair at wind-up progress u: primary shift, scales and the contact point */
+  const pairAt = (uu: number) => {
+    const press =
+      uu > CONTACT_U ? easeOut((uu - CONTACT_U) / (1 - CONTACT_U)) : 0;
+    const shift = MAX_SHIFT * press * press; // slow creep that steepens: tension building
+    const sNext = 0.58 + 0.3 * Math.pow(Math.min(1, uu / CONTACT_U), 2.4);
+    const curScaleX = 1 - 0.05 * press;
+    const nextScaleX = sNext * (1 - 0.06 * press);
+    const contactX = center - shift + HALF_W * curScaleX + HALF_W * nextScaleX; // next card's centre when touching
+    return {
+      press,
+      shift,
+      sNext,
+      curScaleX,
+      curScaleY: 1 + 0.03 * press,
+      nextScaleX,
+      nextScaleY: sNext * (1 + 0.03 * press),
+      contactX,
+    };
+  };
+  const pair = pairAt(u);
+  const travel = Math.pow(Math.min(1, u / CONTACT_U), 2.2); // accelerating approach to contact
+  const pullBack = u < 0.3 ? R * 0.07 * Math.sin(Math.PI * (u / 0.3)) : 0; // "and… here it comes"
+  const nextX =
+    u >= CONTACT_U
+      ? pair.contactX
+      : center +
+        R -
+        (center + R - pairAt(CONTACT_U).contactX) * travel +
+        pullBack;
+
+  // after an onset: the arriving card snaps from the contact point into the centre, the old one is shoved out
+  const since = current ? currentTime - tc : 0;
+  const handoff = clamp01(since / 0.2);
+  const atRelease = pairAt(1);
+  const curX =
+    center + (atRelease.contactX - center) * (1 - easeOutBack(handoff));
+  const curScale =
+    atRelease.sNext + (1 - atRelease.sNext) * easeOutBack(handoff);
+  const shove = easeOut(clamp01(since / 0.28));
+  const prevX = center - atRelease.shift - (L - atRelease.shift) * shove;
+
   const place = (
     x: number,
-    scale: number,
+    sx: number,
+    sy: number,
     opacity: number,
     z: number
   ): React.CSSProperties => ({
-    transform: `translate(${x}px, -50%) translateX(-50%) scale(${scale})`,
+    transform: `translate(${x}px, -50%) translateX(-50%) scale(${sx}, ${sy})`,
     opacity,
     zIndex: z,
     transition: isPlaying
       ? 'none'
       : 'transform 260ms cubic-bezier(0.2, 0.9, 0.25, 1.15), opacity 200ms',
   });
-  const since = current ? currentTime - tc : 0;
-  const pop = since < 0.14 ? 1 + 0.1 * (1 - since / 0.14) : 1;
-  const brace = u > 0.7 ? (u - 0.7) / 0.3 : 0; // the locked card tenses just before it's displaced
   const cardStyles = {
-    prev: place(
-      center - L * easeOut(clamp01(since / 0.28)),
-      1 - 0.5 * easeOut(clamp01(since / 0.28)),
-      1 - 0.7 * easeOut(clamp01(since / 0.28)),
-      1
+    prev: place(prevX, 1 - 0.5 * shove, 1 - 0.5 * shove, 1 - 0.7 * shove, 1),
+    current: place(
+      handoff < 1 ? curX : center - pair.shift,
+      handoff < 1 ? curScale : pair.curScaleX,
+      handoff < 1 ? curScale : pair.curScaleY,
+      1,
+      3
     ),
-    current: place(center - 8 * brace, pop * (1 - 0.04 * brace), 1, 3),
-    next: place(
-      center + R * (1 - approach) + pullBack,
-      0.58 + 0.3 * approach,
-      0.6 + 0.4 * approach,
-      2
-    ),
-    onDeck: place(center + R * 1.65, 0.5, 0.4, 1),
+    next: place(nextX, pair.nextScaleX, pair.nextScaleY, 0.6 + 0.4 * travel, 2),
+    onDeck: place(center + R * 1.65, 0.5, 0.5, 0.4, 1),
   };
 
   const seekFromEvent = (e: React.MouseEvent) => {
@@ -200,7 +244,8 @@ export function LearnerView({
         <div className={styles.nowLine} aria-hidden />
         <div className={styles.nowLabel}>now</div>
         <div className={styles.laneHint}>
-          next note winds up {Math.round(2 * beatSeconds * 10) / 10} s ahead
+          next note arrives and presses {Math.round(2 * beatSeconds * 10) / 10}{' '}
+          s ahead
         </div>
         {laneW > 0 &&
           (
